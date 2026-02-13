@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/ezer/repoinjector/internal/cmd"
 
 func main() {
-	fmt.Println("hello world")
+	cmd.Execute()
 }

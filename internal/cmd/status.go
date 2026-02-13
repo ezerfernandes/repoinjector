@@ -1,0 +1,115 @@
+package cmd
+
+import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/ezer/repoinjector/internal/config"
+	"github.com/ezer/repoinjector/internal/gitutil"
+	"github.com/ezer/repoinjector/internal/injector"
+	"github.com/ezer/repoinjector/internal/ui"
+	"github.com/spf13/cobra"
+)
+
+var statusCmd = &cobra.Command{
+	Use:   "status [target]",
+	Short: "Show injection status of target repo(s)",
+	Long: `Check whether configured files are present, current, and excluded from git
+in the target repository.
+
+If no target is specified, the current directory is used.
+Use --all to check all git repos under the target directory.`,
+	Args: cobra.MaximumNArgs(1),
+	RunE: runStatus,
+}
+
+var (
+	statusAll  bool
+	statusJSON bool
+)
+
+func init() {
+	rootCmd.AddCommand(statusCmd)
+	statusCmd.Flags().BoolVar(&statusAll, "all", false, "check all git repos under target directory")
+	statusCmd.Flags().BoolVar(&statusJSON, "json", false, "output as JSON")
+}
+
+type jsonStatusOutput struct {
+	Repo   string             `json:"repo"`
+	Items  []jsonItemStatus   `json:"items"`
+}
+
+type jsonItemStatus struct {
+	TargetPath string `json:"target_path"`
+	Type       string `json:"type"`
+	Present    bool   `json:"present"`
+	Current    bool   `json:"current"`
+	Excluded   bool   `json:"excluded"`
+	Detail     string `json:"detail"`
+}
+
+func runStatus(cmd *cobra.Command, args []string) error {
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+
+	target := "."
+	if len(args) > 0 {
+		target = args[0]
+	}
+	target, err = filepath.Abs(target)
+	if err != nil {
+		return err
+	}
+
+	var targets []string
+	if statusAll {
+		targets, err = gitutil.FindGitRepos(target)
+		if err != nil {
+			return err
+		}
+		if len(targets) == 0 {
+			return fmt.Errorf("no git repositories found under %s", target)
+		}
+	} else {
+		targets = []string{target}
+	}
+
+	var jsonOutputs []jsonStatusOutput
+
+	for _, t := range targets {
+		statuses, err := injector.Status(cfg, t)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error checking %s: %v\n", t, err)
+			continue
+		}
+
+		if statusJSON {
+			out := jsonStatusOutput{Repo: t}
+			for _, s := range statuses {
+				out.Items = append(out.Items, jsonItemStatus{
+					TargetPath: s.Item.TargetPath,
+					Type:       string(s.Item.Type),
+					Present:    s.Present,
+					Current:    s.Current,
+					Excluded:   s.Excluded,
+					Detail:     s.Detail,
+				})
+			}
+			jsonOutputs = append(jsonOutputs, out)
+		} else {
+			ui.PrintStatusTable(t, statuses)
+		}
+	}
+
+	if statusJSON {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(jsonOutputs)
+	}
+
+	return nil
+}
