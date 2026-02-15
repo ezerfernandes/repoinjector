@@ -9,15 +9,19 @@ import (
 	"github.com/ezer/repoinjector/internal/config"
 	"github.com/ezer/repoinjector/internal/gitutil"
 	"github.com/ezer/repoinjector/internal/injector"
+	"github.com/ezer/repoinjector/internal/syncer"
 	"github.com/ezer/repoinjector/internal/ui"
 	"github.com/spf13/cobra"
 )
 
 var statusCmd = &cobra.Command{
 	Use:   "status [target]",
-	Short: "Show injection status of target repo(s)",
+	Short: "Show injection or git status of target repo(s)",
 	Long: `Check whether configured files are present, current, and excluded from git
 in the target repository.
+
+Use --git to show git sync status (branch, ahead/behind, dirty) instead of
+injection status.
 
 If no target is specified, the current directory is used.
 Use --all to check all git repos under the target directory.`,
@@ -26,14 +30,18 @@ Use --all to check all git repos under the target directory.`,
 }
 
 var (
-	statusAll  bool
-	statusJSON bool
+	statusAll     bool
+	statusJSON    bool
+	statusGit     bool
+	statusNoFetch bool
 )
 
 func init() {
 	rootCmd.AddCommand(statusCmd)
 	statusCmd.Flags().BoolVar(&statusAll, "all", false, "check all git repos under target directory")
 	statusCmd.Flags().BoolVar(&statusJSON, "json", false, "output as JSON")
+	statusCmd.Flags().BoolVar(&statusGit, "git", false, "show git sync status (branch, ahead/behind, dirty)")
+	statusCmd.Flags().BoolVar(&statusNoFetch, "no-fetch", false, "skip git fetch when checking git status")
 }
 
 type jsonStatusOutput struct {
@@ -51,16 +59,11 @@ type jsonItemStatus struct {
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
-	cfg, err := config.Load()
-	if err != nil {
-		return err
-	}
-
 	target := "."
 	if len(args) > 0 {
 		target = args[0]
 	}
-	target, err = filepath.Abs(target)
+	target, err := filepath.Abs(target)
 	if err != nil {
 		return err
 	}
@@ -76,6 +79,30 @@ func runStatus(cmd *cobra.Command, args []string) error {
 		}
 	} else {
 		targets = []string{target}
+	}
+
+	if statusGit {
+		return runGitStatus(targets)
+	}
+
+	return runInjectionStatus(targets)
+}
+
+func runGitStatus(targets []string) error {
+	statuses := syncer.StatusAll(targets, statusNoFetch, 1)
+
+	if statusJSON {
+		return ui.PrintGitStatusJSON(statuses)
+	}
+
+	ui.PrintGitStatusTable(statuses)
+	return nil
+}
+
+func runInjectionStatus(targets []string) error {
+	cfg, err := config.Load()
+	if err != nil {
+		return err
 	}
 
 	var jsonOutputs []jsonStatusOutput

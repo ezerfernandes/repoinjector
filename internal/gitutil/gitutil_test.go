@@ -17,6 +17,46 @@ func initGitRepo(t *testing.T, dir string) {
 	}
 }
 
+// initBareCloneEnv creates a bare repo with an initial commit and a clone of it.
+// Returns (bareDir, cloneDir). The clone tracks origin/main (or origin/master).
+func initBareCloneEnv(t *testing.T) (string, string) {
+	t.Helper()
+
+	bareDir := filepath.Join(t.TempDir(), "bare.git")
+	run(t, "", "git", "init", "--bare", bareDir)
+
+	cloneDir := filepath.Join(t.TempDir(), "clone")
+	run(t, "", "git", "clone", bareDir, cloneDir)
+
+	// Create initial commit and push
+	writeFile(t, filepath.Join(cloneDir, "README.md"), "init")
+	run(t, cloneDir, "git", "add", ".")
+	run(t, cloneDir, "git", "commit", "-m", "initial commit")
+	run(t, cloneDir, "git", "push")
+
+	return bareDir, cloneDir
+}
+
+func run(t *testing.T, dir string, name string, args ...string) string {
+	t.Helper()
+	cmd := exec.Command(name, args...)
+	if dir != "" {
+		cmd.Dir = dir
+	}
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("%s %v failed: %v\n%s", name, args, err, out)
+	}
+	return string(out)
+}
+
+func writeFile(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(content), 0644); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestFindGitDir(t *testing.T) {
 	repo := t.TempDir()
 	initGitRepo(t, repo)
@@ -98,5 +138,144 @@ func TestFindGitDirWorktree(t *testing.T) {
 	// gitDir should point inside the main repo's .git/worktrees/
 	if gitDir == filepath.Join(wtDir, ".git") {
 		t.Errorf("gitDir should not be the worktree .git file, got %q", gitDir)
+	}
+}
+
+func TestRunGit(t *testing.T) {
+	repo := t.TempDir()
+	initGitRepo(t, repo)
+
+	out, err := RunGit(repo, "status", "--porcelain")
+	if err != nil {
+		t.Fatalf("RunGit failed: %v", err)
+	}
+	// Empty repo, no changes
+	if out != "" {
+		t.Errorf("expected empty output, got %q", out)
+	}
+}
+
+func TestRunGitError(t *testing.T) {
+	dir := t.TempDir()
+	_, err := RunGit(dir, "log")
+	if err == nil {
+		t.Error("expected error for non-git directory")
+	}
+}
+
+func TestCurrentBranch(t *testing.T) {
+	_, cloneDir := initBareCloneEnv(t)
+
+	branch, err := CurrentBranch(cloneDir)
+	if err != nil {
+		t.Fatalf("CurrentBranch failed: %v", err)
+	}
+	if branch == "" {
+		t.Fatal("expected non-empty branch name")
+	}
+}
+
+func TestCurrentBranchDetached(t *testing.T) {
+	_, cloneDir := initBareCloneEnv(t)
+
+	run(t, cloneDir, "git", "checkout", "--detach")
+
+	branch, err := CurrentBranch(cloneDir)
+	if err != nil {
+		t.Fatalf("CurrentBranch failed: %v", err)
+	}
+	if branch != "" {
+		t.Errorf("expected empty branch for detached HEAD, got %q", branch)
+	}
+}
+
+func TestUpstreamRef(t *testing.T) {
+	_, cloneDir := initBareCloneEnv(t)
+
+	upstream, err := UpstreamRef(cloneDir)
+	if err != nil {
+		t.Fatalf("UpstreamRef failed: %v", err)
+	}
+	if upstream == "" {
+		t.Fatal("expected non-empty upstream ref")
+	}
+}
+
+func TestUpstreamRefNone(t *testing.T) {
+	repo := t.TempDir()
+	initGitRepo(t, repo)
+
+	// Create a commit so HEAD exists
+	writeFile(t, filepath.Join(repo, "file.txt"), "content")
+	run(t, repo, "git", "add", ".")
+	run(t, repo, "git", "commit", "-m", "init")
+
+	upstream, err := UpstreamRef(repo)
+	if err != nil {
+		t.Fatalf("UpstreamRef failed: %v", err)
+	}
+	if upstream != "" {
+		t.Errorf("expected empty upstream, got %q", upstream)
+	}
+}
+
+func TestAheadBehind(t *testing.T) {
+	_, cloneDir := initBareCloneEnv(t)
+
+	ahead, behind, err := AheadBehind(cloneDir)
+	if err != nil {
+		t.Fatalf("AheadBehind failed: %v", err)
+	}
+	if ahead != 0 || behind != 0 {
+		t.Errorf("expected 0/0, got %d/%d", ahead, behind)
+	}
+}
+
+func TestAheadBehindWithCommits(t *testing.T) {
+	bareDir, cloneDir := initBareCloneEnv(t)
+
+	// Push a commit from a second clone to make the first clone behind
+	clone2 := filepath.Join(t.TempDir(), "clone2")
+	run(t, "", "git", "clone", bareDir, clone2)
+	writeFile(t, filepath.Join(clone2, "new.txt"), "content")
+	run(t, clone2, "git", "add", ".")
+	run(t, clone2, "git", "commit", "-m", "new commit")
+	run(t, clone2, "git", "push")
+
+	// Fetch in original clone
+	run(t, cloneDir, "git", "fetch")
+
+	ahead, behind, err := AheadBehind(cloneDir)
+	if err != nil {
+		t.Fatalf("AheadBehind failed: %v", err)
+	}
+	if ahead != 0 {
+		t.Errorf("expected 0 ahead, got %d", ahead)
+	}
+	if behind != 1 {
+		t.Errorf("expected 1 behind, got %d", behind)
+	}
+}
+
+func TestIsDirty(t *testing.T) {
+	_, cloneDir := initBareCloneEnv(t)
+
+	dirty, err := IsDirty(cloneDir)
+	if err != nil {
+		t.Fatalf("IsDirty failed: %v", err)
+	}
+	if dirty {
+		t.Error("expected clean repo")
+	}
+
+	// Make it dirty
+	writeFile(t, filepath.Join(cloneDir, "dirty.txt"), "uncommitted")
+
+	dirty, err = IsDirty(cloneDir)
+	if err != nil {
+		t.Fatalf("IsDirty failed: %v", err)
+	}
+	if !dirty {
+		t.Error("expected dirty repo")
 	}
 }
