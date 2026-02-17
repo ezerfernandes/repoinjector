@@ -2,8 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/ezer/repoinjector/internal/brancher"
+	"github.com/ezer/repoinjector/internal/gitutil"
+	"github.com/ezer/repoinjector/internal/scripter"
 	"github.com/spf13/cobra"
 )
 
@@ -30,5 +33,17 @@ func runBranch(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Printf("Cloned %s into %s\n", result.RemoteURL, result.TargetDir)
 	fmt.Printf("Checked out new branch: %s\n", result.Branch)
+
+	// Run setup script if configured in the parent repo.
+	gitDir, err := gitutil.FindGitDir(result.ParentRepo)
+	if err == nil {
+		if _, exists := scripter.GetScript(gitDir, scripter.ScriptSetup); exists {
+			fmt.Println("Running setup script...")
+			if err := scripter.RunScript(gitDir, scripter.ScriptSetup, result.TargetDir); err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: setup script failed: %v\n", err)
+			}
+		}
+	}
+
 	return nil
 }
