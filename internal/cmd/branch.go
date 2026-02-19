@@ -50,6 +50,18 @@ func runBranch(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Set initial workflow state for the new branch.
+	if newGitDir, err := gitutil.FindGitDir(result.TargetDir); err == nil {
+		newCfg, _ := repoconfig.Load(newGitDir)
+		if newCfg == nil {
+			newCfg = &repoconfig.RepoConfig{Version: 1}
+		}
+		newCfg.State = string(repoconfig.StateActive)
+		if err := repoconfig.Save(newGitDir, newCfg); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: could not set initial state: %v\n", err)
+		}
+	}
+
 	// Run setup script if configured in the parent repo.
 	if parentGitDirErr == nil {
 		if _, exists := scripter.GetScript(parentGitDir, scripter.ScriptSetup); exists {

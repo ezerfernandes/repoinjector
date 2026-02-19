@@ -14,6 +14,7 @@ import (
 // It records which global config items and directory entries are relevant for a particular repo.
 type RepoConfig struct {
 	Version int              `yaml:"version"`
+	State   string           `yaml:"state,omitempty"`
 	Items   []RepoItemConfig `yaml:"items"`
 }
 
