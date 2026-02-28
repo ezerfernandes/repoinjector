@@ -10,7 +10,7 @@ import (
 )
 
 var settingsCmd = &cobra.Command{
-	Use:   "settings",
+	Use:   "global",
 	Short: "Interactively configure repoinjector",
 	Long: `Run an interactive wizard to set up repoinjector. Configures the source
 directory, injection mode, and which items to inject.
@@ -25,7 +25,7 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(settingsCmd)
+	configCmd.AddCommand(settingsCmd)
 	settingsCmd.Flags().StringVar(&settingsSource, "source", "", "source directory (skip interactive prompt)")
 	settingsCmd.Flags().BoolVar(&settingsNonInteractive, "non-interactive", false, "use defaults without prompting")
 }

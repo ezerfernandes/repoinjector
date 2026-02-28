@@ -20,7 +20,7 @@ The script is stored inside .git and is never committed.`,
 }
 
 func init() {
-	rootCmd.AddCommand(scriptCmd)
+	configCmd.AddCommand(scriptCmd)
 }
 
 func runScript(cmd *cobra.Command, args []string) error {

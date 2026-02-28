@@ -29,7 +29,7 @@ This is useful for creating isolated working copies for existing branches.`,
 var cloneNoInject bool
 
 func init() {
-	rootCmd.AddCommand(cloneCmd)
+	branchCmd.AddCommand(cloneCmd)
 	cloneCmd.Flags().BoolVar(&cloneNoInject, "no-inject", false, "skip automatic injection into the new clone")
 }
 

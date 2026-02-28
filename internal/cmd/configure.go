@@ -11,7 +11,7 @@ import (
 )
 
 var configureCmd = &cobra.Command{
-	Use:   "configure",
+	Use:   "repo",
 	Short: "Configure injection settings for this repository",
 	Long: `Interactively select which items and entries to inject into this repository.
 
@@ -21,7 +21,7 @@ The configuration is saved to .git/repoinjector/config.yaml and is used by
 }
 
 func init() {
-	rootCmd.AddCommand(configureCmd)
+	configCmd.AddCommand(configureCmd)
 }
 
 func runConfigure(cmd *cobra.Command, args []string) error {
@@ -37,7 +37,7 @@ func runConfigure(cmd *cobra.Command, args []string) error {
 
 	globalCfg, err := config.Load()
 	if err != nil {
-		return fmt.Errorf("global config not found (run 'repoinjector settings' first): %w", err)
+		return fmt.Errorf("global config not found (run 'repoinjector config global' first): %w", err)
 	}
 
 	existingRepoCfg, err := repoconfig.Load(gitDir)

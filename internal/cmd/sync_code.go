@@ -12,7 +12,7 @@ import (
 )
 
 var syncCodeCmd = &cobra.Command{
-	Use:   "sync-code [directory]",
+	Use:   "code [directory]",
 	Short: "Pull updates for git repos in a directory",
 	Long: `Fetch and pull updates for all git repositories that are immediate
 subdirectories of the target directory.
@@ -36,7 +36,6 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(syncCodeCmd)
 	syncCodeCmd.Flags().BoolVar(&syncCodeDryRun, "dry-run", false, "show what would be done without pulling")
 	syncCodeCmd.Flags().BoolVar(&syncCodeAutoStash, "autostash", false, "stash dirty working trees before pull")
 	syncCodeCmd.Flags().IntVarP(&syncCodeJobs, "jobs", "j", 1, "number of parallel sync workers")
