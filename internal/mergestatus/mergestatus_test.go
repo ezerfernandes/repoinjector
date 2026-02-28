@@ -21,7 +21,7 @@ func TestReviewStates(t *testing.T) {
 	}
 
 	// Non-review states should not be present
-	for _, s := range []string{"active", "merged", "closed", "done", "paused"} {
+	for _, s := range []string{"active", "merged", "closed", "paused"} {
 		if states[s] {
 			t.Errorf("ReviewStates should not contain %q", s)
 		}
@@ -427,7 +427,7 @@ func TestMapGitLabState_MixedCase(t *testing.T) {
 
 func TestReviewStates_DoesNotContainNonReviewStates(t *testing.T) {
 	states := ReviewStates()
-	nonReview := []string{"active", "merged", "closed", "done", "paused", ""}
+	nonReview := []string{"active", "merged", "closed", "paused", ""}
 	for _, s := range nonReview {
 		if states[s] {
 			t.Errorf("ReviewStates should not contain %q", s)

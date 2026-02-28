@@ -12,7 +12,6 @@ const (
 	StateReviewBlocked WorkflowState = "review-blocked"
 	StateMerged        WorkflowState = "merged"
 	StateClosed        WorkflowState = "closed"
-	StateDone          WorkflowState = "done"
 	StatePaused        WorkflowState = "paused"
 )
 
@@ -20,7 +19,7 @@ const (
 func KnownStates() []WorkflowState {
 	return []WorkflowState{
 		StateActive, StateReview, StateApproved, StateReviewBlocked,
-		StateMerged, StateClosed, StateDone, StatePaused,
+		StateMerged, StateClosed, StatePaused,
 	}
 }
 

@@ -19,8 +19,6 @@ func StateStyle(state string) lipgloss.Style {
 		return base.Foreground(lipgloss.Color("5")) // magenta/purple
 	case "closed":
 		return base.Foreground(lipgloss.Color("#b22222")) // dim red
-	case "done":
-		return base.Foreground(lipgloss.Color("8")) // gray
 	case "paused":
 		return base.Foreground(lipgloss.Color("4")) // blue
 	default:

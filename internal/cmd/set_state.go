@@ -15,7 +15,7 @@ var setStateCmd = &cobra.Command{
 	Long: `Set a workflow state label for the current repository. The state is stored
 in .git/repoinjector/config.yaml and displayed by the "branch list" command.
 
-Predefined states: active, review, approved, review-blocked, merged, closed, done, paused.
+Predefined states: active, review, approved, review-blocked, merged, closed, paused.
 Custom states are also accepted (lowercase letters, digits, hyphens).
 
 When setting state to "review", you may provide a PR/MR URL as the second argument.

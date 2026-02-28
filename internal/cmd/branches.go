@@ -19,7 +19,7 @@ var branchesCmd = &cobra.Command{
 directory, showing each repo's directory name, git branch, and workflow state.
 
 States are color-coded: active (green), review (yellow), approved (lime green),
-review-blocked (red), merged (purple), closed (red), done (gray), paused (blue).
+review-blocked (red), merged (purple), closed (red), paused (blue).
 
 If no directory is specified, the current directory is used.`,
 	Args: cobra.MaximumNArgs(1),
@@ -34,7 +34,7 @@ var (
 func init() {
 	branchCmd.AddCommand(branchesCmd)
 	branchesCmd.Flags().StringVar(&branchesState, "state", "",
-		"filter by workflow state (e.g., active, review, done, paused)")
+		"filter by workflow state (e.g., active, review, closed, paused)")
 	branchesCmd.Flags().BoolVar(&branchesJSON, "json", false, "output as JSON")
 }
 

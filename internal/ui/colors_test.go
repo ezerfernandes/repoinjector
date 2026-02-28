@@ -13,7 +13,7 @@ func TestRenderState_Empty(t *testing.T) {
 }
 
 func TestRenderState_KnownStates(t *testing.T) {
-	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "done", "paused"}
+	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "paused"}
 
 	for _, state := range states {
 		t.Run(state, func(t *testing.T) {
@@ -33,7 +33,7 @@ func TestRenderState_UnknownState(t *testing.T) {
 }
 
 func TestStateStyle_AllKnownStates(t *testing.T) {
-	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "done", "paused"}
+	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "paused"}
 
 	for _, state := range states {
 		t.Run(state, func(t *testing.T) {
@@ -56,7 +56,7 @@ func TestStateStyle_UnknownState(t *testing.T) {
 }
 
 func TestRenderState_ContainsStateText(t *testing.T) {
-	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "done", "paused"}
+	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "paused"}
 
 	for _, state := range states {
 		t.Run(state, func(t *testing.T) {
