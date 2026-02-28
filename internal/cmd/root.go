@@ -3,11 +3,20 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime/debug"
 
 	"github.com/spf13/cobra"
 )
 
 var version = "dev"
+
+func init() {
+	if version == "dev" {
+		if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" {
+			version = info.Main.Version
+		}
+	}
+}
 
 var rootCmd = &cobra.Command{
 	Use:   "repoinjector",
@@ -25,6 +34,4 @@ func Execute() {
 	}
 }
 
-func init() {
-	rootCmd.Version = version
-}
+func init() { rootCmd.Version = version }
