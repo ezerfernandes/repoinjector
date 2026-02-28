@@ -15,7 +15,7 @@ import (
 )
 
 var syncStateCmd = &cobra.Command{
-	Use:   "sync-state [directory]",
+	Use:   "state [directory]",
 	Short: "Update workflow states from PR/MR status",
 	Long: `Query GitHub or GitLab for the current status of pull/merge requests
 associated with branch repos and update their workflow states accordingly.
@@ -37,7 +37,6 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(syncStateCmd)
 	syncStateCmd.Flags().BoolVar(&syncStateDryRun, "dry-run", false,
 		"show what would change without updating configs")
 	syncStateCmd.Flags().BoolVar(&syncStateJSON, "json", false, "output as JSON")

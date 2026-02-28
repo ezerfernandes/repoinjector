@@ -13,7 +13,7 @@ import (
 )
 
 var branchesCmd = &cobra.Command{
-	Use:   "branches [directory]",
+	Use:   "list [directory]",
 	Short: "List branch repos with their workflow states",
 	Long: `List all git repositories that are immediate subdirectories of the target
 directory, showing each repo's directory name, git branch, and workflow state.
@@ -32,7 +32,7 @@ var (
 )
 
 func init() {
-	rootCmd.AddCommand(branchesCmd)
+	branchCmd.AddCommand(branchesCmd)
 	branchesCmd.Flags().StringVar(&branchesState, "state", "",
 		"filter by workflow state (e.g., active, review, done, paused)")
 	branchesCmd.Flags().BoolVar(&branchesJSON, "json", false, "output as JSON")

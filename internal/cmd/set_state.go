@@ -13,15 +13,15 @@ var setStateCmd = &cobra.Command{
 	Use:   "set-state <state> [url]",
 	Short: "Set the workflow state for the current branch repo",
 	Long: `Set a workflow state label for the current repository. The state is stored
-in .git/repoinjector/config.yaml and displayed by the "branches" command.
+in .git/repoinjector/config.yaml and displayed by the "branch list" command.
 
 Predefined states: active, review, approved, review-blocked, merged, closed, done, paused.
 Custom states are also accepted (lowercase letters, digits, hyphens).
 
 When setting state to "review", you may provide a PR/MR URL as the second argument.
-This URL is stored and used by the "sync-state" command to track PR/MR status.
+This URL is stored and used by the "sync state" command to track PR/MR status.
 
-  repoinjector set-state review https://github.com/org/repo/pull/42
+  repoinjector branch set-state review https://github.com/org/repo/pull/42
 
 Use "set-state --clear" to remove the state and merge URL.`,
 	Args: cobra.MaximumNArgs(2),
@@ -31,7 +31,7 @@ Use "set-state --clear" to remove the state and merge URL.`,
 var setStateClear bool
 
 func init() {
-	rootCmd.AddCommand(setStateCmd)
+	branchCmd.AddCommand(setStateCmd)
 	setStateCmd.Flags().BoolVar(&setStateClear, "clear", false, "remove the workflow state and merge URL")
 }
 

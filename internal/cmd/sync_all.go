@@ -10,14 +10,14 @@ import (
 var syncAllCmd = &cobra.Command{
 	Use:   "sync [directory]",
 	Short: "Pull code updates and refresh PR/MR states",
-	Long: `Run sync-code and sync-state together.
+	Long: `Run "sync code" and "sync state" together.
 
 First fetches and pulls git updates for all repos under the target directory,
 then queries GitHub/GitLab for PR/MR status changes and updates workflow states.
 
 If no directory is specified, the current directory is used.
-All flags from sync-code are supported. Use sync-code or sync-state directly
-if you only need one operation.`,
+All flags from "sync code" are supported. Use "sync code" or "sync state"
+directly if you only need one operation.`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runSyncAll,
 }
@@ -33,6 +33,8 @@ var (
 
 func init() {
 	rootCmd.AddCommand(syncAllCmd)
+	syncAllCmd.AddCommand(syncCodeCmd)
+	syncAllCmd.AddCommand(syncStateCmd)
 	syncAllCmd.Flags().BoolVar(&syncAllDryRun, "dry-run", false, "show what would be done without making changes")
 	syncAllCmd.Flags().BoolVar(&syncAllAutoStash, "autostash", false, "stash dirty working trees before pull")
 	syncAllCmd.Flags().IntVarP(&syncAllJobs, "jobs", "j", 1, "number of parallel sync workers")
