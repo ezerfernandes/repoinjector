@@ -40,8 +40,8 @@ func TestValidateState_InvalidChars(t *testing.T) {
 
 func TestKnownStates_Count(t *testing.T) {
 	states := KnownStates()
-	if len(states) != 8 {
-		t.Errorf("expected 8 known states, got %d", len(states))
+	if len(states) != 7 {
+		t.Errorf("expected 7 known states, got %d", len(states))
 	}
 }
 
@@ -60,8 +60,8 @@ func TestIsKnownState(t *testing.T) {
 	if !IsKnownState("review") {
 		t.Error("review should be a known state")
 	}
-	if !IsKnownState("done") {
-		t.Error("done should be a known state")
+	if !IsKnownState("closed") {
+		t.Error("closed should be a known state")
 	}
 	if !IsKnownState("paused") {
 		t.Error("paused should be a known state")

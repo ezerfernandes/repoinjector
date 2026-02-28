@@ -183,7 +183,7 @@ func TestPrintBranchesTable_LongNames(t *testing.T) {
 }
 
 func TestPrintBranchesTable_AllStates(t *testing.T) {
-	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "done", "paused"}
+	states := []string{"active", "review", "approved", "review-blocked", "merged", "closed", "paused"}
 	var infos []BranchInfo
 	for _, s := range states {
 		infos = append(infos, BranchInfo{

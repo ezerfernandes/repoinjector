@@ -11,7 +11,7 @@ When working with multiple branch copies of the same repo (e.g., running paralle
 - Symlinks (or copies) files from a central source into target repos
 - Hides injected files from git using `.git/info/exclude` (no tracked files modified)
 - Supports batch operations across all repos in a directory
-- Track workflow state per branch (`active`, `review`, `done`, `paused`) with color-coded overview
+- Track workflow state per branch (`active`, `review`, `closed`, `paused`) with color-coded overview
 - Interactive TUI for configuration, simple CLI for daily use
 
 ### Injected items (defaults)
@@ -272,12 +272,12 @@ repoinjector branch clone feature/my-thing --no-inject
 
 Set a workflow state for the current repo. Stored in `.git/repoinjector/config.yaml`.
 
-Predefined states: `active`, `review`, `done`, `paused`. Custom states are also accepted (lowercase letters, digits, hyphens).
+Predefined states: `active`, `review`, `approved`, `review-blocked`, `merged`, `closed`, `paused`. Custom states are also accepted (lowercase letters, digits, hyphens).
 
 ```sh
 repoinjector branch set-state active
 repoinjector branch set-state review
-repoinjector branch set-state done
+repoinjector branch set-state closed
 repoinjector branch set-state my-custom-state
 repoinjector branch set-state --clear
 ```
@@ -288,7 +288,7 @@ repoinjector branch set-state --clear
 
 ### `branch list`
 
-List branch repos with state, git branch, and dirty status. States are color-coded: `active` (green), `review` (yellow), `done` (gray), `paused` (blue).
+List branch repos with state, git branch, and dirty status. States are color-coded: `active` (green), `review` (yellow), `closed` (red), `paused` (blue).
 
 ```sh
 repoinjector branch list
@@ -309,7 +309,7 @@ Example output:
   ─────────────  ──────────────  ───────  ─────
   feat-auth      feat-auth       active
   fix-bug-123    fix-bug-123     review   *
-  old-feature    old-feature     done
+  old-feature    old-feature     closed
 ```
 
 ### `sync`
