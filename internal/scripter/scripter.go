@@ -14,7 +14,7 @@ const (
 
 // ScriptPath returns the full path to a script file within the git directory.
 func ScriptPath(gitDir string, scriptType string) string {
-	return filepath.Join(gitDir, "repoinjector", "scripts", scriptType+".sh")
+	return filepath.Join(gitDir, "repomni", "scripts", scriptType+".sh")
 }
 
 // GetScript reads the script content for the given type.

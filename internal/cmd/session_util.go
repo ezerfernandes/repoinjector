@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
 )
 
 // resolveProjectPath determines the Claude Code project path from the

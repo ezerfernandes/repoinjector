@@ -1,9 +1,9 @@
-# Repoinjector Requirements (EARS Notation)
+# Repomni Requirements (EARS Notation)
 
 ## 1. Configuration
 
 ### REQ-CFG-001: Configuration persistence
-The system shall store configuration in `~/.config/repoinjector/config.yaml` using YAML format.
+The system shall store configuration in `~/.config/repomni/config.yaml` using YAML format.
 
 ### REQ-CFG-002: Default configuration
 When no configuration file exists, the system shall use symlink mode with all default items enabled (.claude/skills, .claude/hooks.json, .envrc, .env).
@@ -20,7 +20,7 @@ The system shall support two injection modes: `symlink` and `copy`.
 ## 2. Settings Command
 
 ### REQ-CONF-001: Interactive wizard
-When the user runs `repoinjector settings`, the system shall present an interactive multi-step form collecting: source directory path, injection mode, items to inject, and a confirmation prompt.
+When the user runs `repomni settings`, the system shall present an interactive multi-step form collecting: source directory path, injection mode, items to inject, and a confirmation prompt.
 
 ### REQ-CONF-002: Source directory validation
 When the user provides a source directory during configuration, the system shall validate that the path exists and is a directory.
@@ -40,10 +40,10 @@ When a configuration file already exists, the system shall load it and use its v
 ## 3. Inject Command
 
 ### REQ-INJ-001: Default target
-When the user runs `repoinjector inject` without a target argument, the system shall use the current working directory as the target.
+When the user runs `repomni inject` without a target argument, the system shall use the current working directory as the target.
 
 ### REQ-INJ-002: Explicit target
-When the user runs `repoinjector inject <target>`, the system shall use the provided path as the target directory.
+When the user runs `repomni inject <target>`, the system shall use the provided path as the target directory.
 
 ### REQ-INJ-003: Git repository validation
 If the target directory is not a git repository, then the system shall return an error.
@@ -67,7 +67,7 @@ When an item's target path requires parent directories that do not exist, the sy
 When items are injected into a target repository, the system shall add all injected target paths to a managed block in `.git/info/exclude`.
 
 ### REQ-INJ-010: Managed block markers
-The system shall delimit the managed block in `.git/info/exclude` with `# BEGIN repoinjector managed block` and `# END repoinjector managed block` markers.
+The system shall delimit the managed block in `.git/info/exclude` with `# BEGIN repomni managed block` and `# END repomni managed block` markers.
 
 ### REQ-INJ-011: Preserve existing excludes
 When updating `.git/info/exclude`, the system shall preserve all content outside the managed block.
@@ -112,12 +112,12 @@ The system shall only inject items whose `enabled` field is `true` in the config
 When updating `.git/info/exclude`, the system shall replace the existing managed block rather than appending a duplicate.
 
 ### REQ-INJ-025: Config required
-If no configuration file exists when running `inject`, then the system shall return an error suggesting the user run `repoinjector settings`.
+If no configuration file exists when running `inject`, then the system shall return an error suggesting the user run `repomni settings`.
 
 ## 4. Status Command
 
 ### REQ-STA-001: Status table
-When the user runs `repoinjector status`, the system shall display a table showing each enabled item's target path, presence, currency, and exclusion state.
+When the user runs `repomni status`, the system shall display a table showing each enabled item's target path, presence, currency, and exclusion state.
 
 ### REQ-STA-002: Presence check
 The system shall report an item as "present" if a file, directory, or symlink exists at its target path.
@@ -135,12 +135,12 @@ Where the `--all` flag is provided, the system shall display a status table for 
 Where the `--json` flag is provided, the system shall output status information as JSON to stdout.
 
 ### REQ-STA-007: Default target
-When the user runs `repoinjector status` without a target argument, the system shall use the current working directory as the target.
+When the user runs `repomni status` without a target argument, the system shall use the current working directory as the target.
 
 ## 5. Eject Command
 
 ### REQ-EJE-001: Symlink removal
-When the user runs `repoinjector eject`, the system shall remove all injected symlinks from the target repository.
+When the user runs `repomni eject`, the system shall remove all injected symlinks from the target repository.
 
 ### REQ-EJE-002: File removal
 When injected items are regular files or directories (from copy mode), the system shall remove them from the target repository.
@@ -158,7 +158,7 @@ If an injected item is not present in the target during eject, then the system s
 Where the `--all` flag is provided, the system shall eject from all git repositories found as immediate subdirectories of the target directory.
 
 ### REQ-EJE-007: Default target
-When the user runs `repoinjector eject` without a target argument, the system shall use the current working directory as the target.
+When the user runs `repomni eject` without a target argument, the system shall use the current working directory as the target.
 
 ## 6. Git Compatibility
 
@@ -185,7 +185,7 @@ If any item encounters an error during injection or ejection, then the system sh
 ## 8. Sync-Code Command
 
 ### REQ-SYC-001: Default target
-When the user runs `repoinjector sync-code` without a directory argument, the system shall use the current working directory as the target.
+When the user runs `repomni sync-code` without a directory argument, the system shall use the current working directory as the target.
 
 ### REQ-SYC-002: Repository discovery
 The system shall discover all git repositories as immediate subdirectories of the target directory.
@@ -232,7 +232,7 @@ If any repository has conflicts requiring manual resolution, the system shall pr
 ## 9. Sync-State Command
 
 ### REQ-SYS-001: Default target
-When the user runs `repoinjector sync-state` without a directory argument, the system shall use the current working directory as the target.
+When the user runs `repomni sync-state` without a directory argument, the system shall use the current working directory as the target.
 
 ### REQ-SYS-002: Repository discovery
 The system shall discover all git repositories as immediate subdirectories of the target directory.
@@ -270,10 +270,10 @@ When sync-state completes, the system shall print a summary with counts of updat
 ## 10. Sync Command (Umbrella)
 
 ### REQ-SYN-001: Combined execution
-When the user runs `repoinjector sync`, the system shall execute `sync-code` followed by `sync-state` on the same target directory.
+When the user runs `repomni sync`, the system shall execute `sync-code` followed by `sync-state` on the same target directory.
 
 ### REQ-SYN-002: Default target
-When the user runs `repoinjector sync` without a directory argument, the system shall use the current working directory as the target.
+When the user runs `repomni sync` without a directory argument, the system shall use the current working directory as the target.
 
 ### REQ-SYN-003: Flag forwarding
 The system shall forward `--dry-run` and `--json` to both `sync-code` and `sync-state`, and forward `--autostash`, `--jobs`, `--no-fetch`, and `--strategy` to `sync-code`.

@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 
-	"github.com/ezerfernandes/repoinjector/internal/injector"
+	"github.com/ezerfernandes/repomni/internal/injector"
 )
 
 // PrintResults prints injection or ejection results with a summary line.

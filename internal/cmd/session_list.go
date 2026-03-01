@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ezerfernandes/repoinjector/internal/session"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/session"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 

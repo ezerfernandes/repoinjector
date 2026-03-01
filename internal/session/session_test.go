@@ -14,7 +14,7 @@ func TestEncodePath(t *testing.T) {
 	}{
 		{"/Users/foo/my-project", "-Users-foo-my-project"},
 		{"/", "-"},
-		{"/Users/ezersilva/repos/mine/tools/repoinjector", "-Users-ezersilva-repos-mine-tools-repoinjector"},
+		{"/Users/ezersilva/repos/mine/tools/repomni", "-Users-ezersilva-repos-mine-tools-repomni"},
 		{"/home/user/project with spaces", "-home-user-project with spaces"},
 	}
 

@@ -1,4 +1,4 @@
-# Releasing repoinjector
+# Releasing repomni
 
 How to build versioned binaries and publish them as GitHub releases.
 
@@ -21,8 +21,8 @@ Verify the version is picked up:
 
 ```sh
 make build
-./bin/repoinjector --version
-# repoinjector version v0.1.0
+./bin/repomni --version
+# repomni version v0.1.0
 ```
 
 ## 2. Build cross-platform binaries
@@ -34,16 +34,16 @@ Go supports cross-compilation natively. Build for all target platforms:
 make clean
 
 # Linux amd64 (most WSL2 and cloud instances)
-GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X github.com/ezerfernandes/repoinjector/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repoinjector-linux-amd64 .
+GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X github.com/ezerfernandes/repomni/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repomni-linux-amd64 .
 
 # Linux arm64 (Raspberry Pi, ARM servers, some WSL2 on ARM)
-GOOS=linux GOARCH=arm64 go build -ldflags "-s -w -X github.com/ezerfernandes/repoinjector/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repoinjector-linux-arm64 .
+GOOS=linux GOARCH=arm64 go build -ldflags "-s -w -X github.com/ezerfernandes/repomni/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repomni-linux-arm64 .
 
 # macOS amd64 (Intel Macs)
-GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w -X github.com/ezerfernandes/repoinjector/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repoinjector-darwin-amd64 .
+GOOS=darwin GOARCH=amd64 go build -ldflags "-s -w -X github.com/ezerfernandes/repomni/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repomni-darwin-amd64 .
 
 # macOS arm64 (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X github.com/ezerfernandes/repoinjector/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repoinjector-darwin-arm64 .
+GOOS=darwin GOARCH=arm64 go build -ldflags "-s -w -X github.com/ezerfernandes/repomni/internal/cmd.version=$(git describe --tags --always --dirty)" -o dist/repomni-darwin-arm64 .
 ```
 
 The flags `-s -w` strip debug info and DWARF symbols to reduce binary size.
@@ -54,10 +54,10 @@ Upload all binaries to a GitHub release using `gh`:
 
 ```sh
 gh release create v0.1.0 \
-  dist/repoinjector-linux-amd64 \
-  dist/repoinjector-linux-arm64 \
-  dist/repoinjector-darwin-amd64 \
-  dist/repoinjector-darwin-arm64 \
+  dist/repomni-linux-amd64 \
+  dist/repomni-linux-arm64 \
+  dist/repomni-darwin-amd64 \
+  dist/repomni-darwin-arm64 \
   --title "v0.1.0" \
   --notes "Initial release."
 ```
@@ -77,32 +77,32 @@ gh release create v0.1.0 \
 
 ```sh
 # Download the binary
-curl -Lo repoinjector https://github.com/ezerfernandes/repoinjector/releases/latest/download/repoinjector-linux-amd64
+curl -Lo repomni https://github.com/ezerfernandes/repomni/releases/latest/download/repomni-linux-amd64
 
 # Make it executable
-chmod +x repoinjector
+chmod +x repomni
 
 # Move to a directory in your PATH
-sudo mv repoinjector /usr/local/bin/
+sudo mv repomni /usr/local/bin/
 
 # Verify
-repoinjector --version
+repomni --version
 ```
 
 ### On Linux ARM
 
 ```sh
-curl -Lo repoinjector https://github.com/ezerfernandes/repoinjector/releases/latest/download/repoinjector-linux-arm64
-chmod +x repoinjector
-sudo mv repoinjector /usr/local/bin/
+curl -Lo repomni https://github.com/ezerfernandes/repomni/releases/latest/download/repomni-linux-arm64
+chmod +x repomni
+sudo mv repomni /usr/local/bin/
 ```
 
 ### On macOS (Apple Silicon)
 
 ```sh
-curl -Lo repoinjector https://github.com/ezerfernandes/repoinjector/releases/latest/download/repoinjector-darwin-arm64
-chmod +x repoinjector
-sudo mv repoinjector /usr/local/bin/
+curl -Lo repomni https://github.com/ezerfernandes/repomni/releases/latest/download/repomni-darwin-arm64
+chmod +x repomni
+sudo mv repomni /usr/local/bin/
 ```
 
 ## Automating with GitHub Actions (optional)
@@ -139,12 +139,12 @@ jobs:
         run: |
           mkdir -p dist
           VERSION=${GITHUB_REF_NAME}
-          LDFLAGS="-s -w -X github.com/ezerfernandes/repoinjector/internal/cmd.version=${VERSION}"
+          LDFLAGS="-s -w -X github.com/ezerfernandes/repomni/internal/cmd.version=${VERSION}"
 
-          GOOS=linux   GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o dist/repoinjector-linux-amd64  .
-          GOOS=linux   GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o dist/repoinjector-linux-arm64  .
-          GOOS=darwin  GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o dist/repoinjector-darwin-amd64 .
-          GOOS=darwin  GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o dist/repoinjector-darwin-arm64 .
+          GOOS=linux   GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o dist/repomni-linux-amd64  .
+          GOOS=linux   GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o dist/repomni-linux-arm64  .
+          GOOS=darwin  GOARCH=amd64 go build -ldflags "${LDFLAGS}" -o dist/repomni-darwin-amd64 .
+          GOOS=darwin  GOARCH=arm64 go build -ldflags "${LDFLAGS}" -o dist/repomni-darwin-arm64 .
 
       - name: Create GitHub release
         env:
@@ -175,11 +175,11 @@ git push origin $VERSION
 
 # Build all platforms
 mkdir -p dist
-LDFLAGS="-s -w -X github.com/ezerfernandes/repoinjector/internal/cmd.version=$VERSION"
-GOOS=linux  GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/repoinjector-linux-amd64  .
-GOOS=linux  GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/repoinjector-linux-arm64  .
-GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/repoinjector-darwin-amd64 .
-GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/repoinjector-darwin-arm64 .
+LDFLAGS="-s -w -X github.com/ezerfernandes/repomni/internal/cmd.version=$VERSION"
+GOOS=linux  GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/repomni-linux-amd64  .
+GOOS=linux  GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/repomni-linux-arm64  .
+GOOS=darwin GOARCH=amd64 go build -ldflags "$LDFLAGS" -o dist/repomni-darwin-amd64 .
+GOOS=darwin GOARCH=arm64 go build -ldflags "$LDFLAGS" -o dist/repomni-darwin-arm64 .
 
 # Publish
 gh release create $VERSION dist/* --title "$VERSION" --generate-notes

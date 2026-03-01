@@ -14,7 +14,7 @@ func setupGitDir(t *testing.T) string {
 func TestScriptPath(t *testing.T) {
 	gitDir := "/fake/.git"
 	got := ScriptPath(gitDir, ScriptSetup)
-	expected := filepath.Join("/fake/.git", "repoinjector", "scripts", "setup.sh")
+	expected := filepath.Join("/fake/.git", "repomni", "scripts", "setup.sh")
 	if got != expected {
 		t.Errorf("ScriptPath() = %q, want %q", got, expected)
 	}
@@ -23,7 +23,7 @@ func TestScriptPath(t *testing.T) {
 func TestScriptPath_CustomType(t *testing.T) {
 	gitDir := "/fake/.git"
 	got := ScriptPath(gitDir, "teardown")
-	expected := filepath.Join("/fake/.git", "repoinjector", "scripts", "teardown.sh")
+	expected := filepath.Join("/fake/.git", "repomni", "scripts", "teardown.sh")
 	if got != expected {
 		t.Errorf("ScriptPath() = %q, want %q", got, expected)
 	}

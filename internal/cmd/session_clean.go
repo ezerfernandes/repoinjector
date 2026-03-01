@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/charmbracelet/huh"
-	"github.com/ezerfernandes/repoinjector/internal/session"
+	"github.com/ezerfernandes/repomni/internal/session"
 	"github.com/spf13/cobra"
 )
 

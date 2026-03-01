@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	excludeMarkerStart = "# BEGIN repoinjector managed block"
-	excludeMarkerEnd   = "# END repoinjector managed block"
+	excludeMarkerStart = "# BEGIN repomni managed block"
+	excludeMarkerEnd   = "# END repomni managed block"
 )
 
 // UpdateExclude writes the given paths into a managed block in .git/info/exclude.
@@ -56,7 +56,7 @@ func CleanExclude(gitDir string) error {
 	return os.WriteFile(excludePath, []byte(strings.TrimRight(cleaned, "\n")+"\n"), 0644)
 }
 
-// HasManagedBlock checks if .git/info/exclude contains a repoinjector managed block.
+// HasManagedBlock checks if .git/info/exclude contains a repomni managed block.
 func HasManagedBlock(gitDir string) bool {
 	excludePath := filepath.Join(gitDir, "info", "exclude")
 	content, err := os.ReadFile(excludePath)

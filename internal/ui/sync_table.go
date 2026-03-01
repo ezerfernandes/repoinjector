@@ -6,7 +6,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ezerfernandes/repoinjector/internal/syncer"
+	"github.com/ezerfernandes/repomni/internal/syncer"
 )
 
 // PrintSyncResults displays sync results as a table with a summary line.

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ezerfernandes/repoinjector/internal/config"
+	"github.com/ezerfernandes/repomni/internal/config"
 )
 
 func TestFilterGlobalConfig(t *testing.T) {
@@ -311,7 +311,7 @@ func TestSaveAndLoad_WithRemote(t *testing.T) {
 func TestLoad_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	gitDir := filepath.Join(tmpDir, ".git")
-	configDir := filepath.Join(gitDir, "repoinjector")
+	configDir := filepath.Join(gitDir, "repomni")
 	os.MkdirAll(configDir, 0755)
 	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("{{invalid: yaml:::"), 0644)
 

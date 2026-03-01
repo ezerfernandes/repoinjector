@@ -101,7 +101,7 @@ func TestLoad_InvalidYAML(t *testing.T) {
 	t.Setenv("XDG_CONFIG_HOME", filepath.Join(tmpDir, ".config"))
 
 	// Create the config directory and write invalid YAML
-	configDir := filepath.Join(tmpDir, ".config", "repoinjector")
+	configDir := filepath.Join(tmpDir, ".config", "repomni")
 	os.MkdirAll(configDir, 0755)
 	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("{{invalid yaml:::"), 0644)
 

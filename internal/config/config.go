@@ -37,7 +37,7 @@ type Item struct {
 	Enabled    bool     `yaml:"enabled"`
 }
 
-// Config holds the global repoinjector configuration.
+// Config holds the global repomni configuration.
 type Config struct {
 	Version   int           `yaml:"version"`
 	SourceDir string        `yaml:"source_dir"`
@@ -69,7 +69,7 @@ func configDir() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("cannot determine config directory: %w", err)
 	}
-	return filepath.Join(dir, "repoinjector"), nil
+	return filepath.Join(dir, "repomni"), nil
 }
 
 // ConfigPath returns the full path to the global config file.
@@ -90,7 +90,7 @@ func Load() (*Config, error) {
 
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, fmt.Errorf("cannot read config (run 'repoinjector settings' first): %w", err)
+		return nil, fmt.Errorf("cannot read config (run 'repomni settings' first): %w", err)
 	}
 
 	var cfg Config
