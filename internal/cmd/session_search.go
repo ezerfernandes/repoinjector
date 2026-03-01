@@ -60,6 +60,6 @@ func runSessionSearch(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	ui.PrintSearchResults(results)
+	ui.PrintSearchResults(results, args[0])
 	return nil
 }
