@@ -1,10 +1,10 @@
-# repoinjector
+# repomni
 
 test
 
 A CLI tool that injects shared configuration files into multiple repository clones, keeping them invisible to git.
 
-When working with multiple branch copies of the same repo (e.g., running parallel AI agents across branches), you need the same `.envrc`, `.env`, Claude skills, and hooks in every clone. Repoinjector symlinks them from a single source directory so you configure once and every clone stays in sync.
+When working with multiple branch copies of the same repo (e.g., running parallel AI agents across branches), you need the same `.envrc`, `.env`, Claude skills, and hooks in every clone. Repomni symlinks them from a single source directory so you configure once and every clone stays in sync.
 
 ## What it does
 
@@ -23,7 +23,7 @@ When working with multiple branch copies of the same repo (e.g., running paralle
 | `.envrc` | `.envrc` | file |
 | `.env` | `.env` | file |
 
-Source paths are configurable via `repoinjector config global`.
+Source paths are configurable via `repomni config global`.
 
 ## Installation
 
@@ -35,12 +35,12 @@ Source paths are configurable via `repoinjector config global`.
 ### From source (recommended)
 
 ```sh
-git clone https://github.com/ezerfernandes/repoinjector.git
-cd repoinjector
+git clone https://github.com/ezerfernandes/repomni.git
+cd repomni
 sudo make install
 ```
 
-This builds the binary and installs it to `/usr/local/bin/repoinjector`.
+This builds the binary and installs it to `/usr/local/bin/repomni`.
 
 To install to a different location:
 
@@ -48,12 +48,12 @@ To install to a different location:
 make install PREFIX=$HOME/.local
 ```
 
-This puts the binary in `~/.local/bin/repoinjector` — make sure `~/.local/bin` is in your `PATH`.
+This puts the binary in `~/.local/bin/repomni` — make sure `~/.local/bin` is in your `PATH`.
 
 ### With `go install`
 
 ```sh
-go install github.com/ezerfernandes/repoinjector@latest
+go install github.com/ezerfernandes/repomni@latest
 ```
 
 This installs to `$GOPATH/bin` (usually `~/go/bin`). Make sure it's in your `PATH`.
@@ -61,7 +61,7 @@ This installs to `$GOPATH/bin` (usually `~/go/bin`). Make sure it's in your `PAT
 ### Verify installation
 
 ```sh
-repoinjector --version
+repomni --version
 ```
 
 ### Uninstall
@@ -71,7 +71,7 @@ repoinjector --version
 sudo make uninstall
 
 # If installed with go install
-rm $(which repoinjector)
+rm $(which repomni)
 ```
 
 ## Quick start
@@ -89,37 +89,37 @@ my-agent-config/
   .env
 ```
 
-### 2. Configure repoinjector
+### 2. Configure repomni
 
 ```sh
-repoinjector config global
+repomni config global
 ```
 
-This walks you through an interactive wizard to set the source directory, injection mode, and which items to inject. Configuration is saved to `~/.config/repoinjector/config.yaml`.
+This walks you through an interactive wizard to set the source directory, injection mode, and which items to inject. Configuration is saved to `~/.config/repomni/config.yaml`.
 
 For scripted setup:
 
 ```sh
-repoinjector config global --non-interactive --source /path/to/my-agent-config
+repomni config global --non-interactive --source /path/to/my-agent-config
 ```
 
 ### 3. Inject into a repo
 
 ```sh
 cd /path/to/my-repo-clone
-repoinjector inject
+repomni inject
 ```
 
 Or inject into all repos under a parent directory:
 
 ```sh
-repoinjector inject --all /path/to/my-clones
+repomni inject --all /path/to/my-clones
 ```
 
 ### 4. Check status
 
 ```sh
-repoinjector status --all /path/to/my-clones
+repomni status --all /path/to/my-clones
 ```
 
 Output:
@@ -137,13 +137,13 @@ Repository: /path/to/my-clones/feature-a
 ### 5. Clean up when done
 
 ```sh
-repoinjector eject /path/to/my-clones/feature-a
+repomni eject /path/to/my-clones/feature-a
 ```
 
 Or eject from all at once:
 
 ```sh
-repoinjector eject --all /path/to/my-clones
+repomni eject --all /path/to/my-clones
 ```
 
 ## Commands
@@ -170,12 +170,12 @@ repoinjector eject --all /path/to/my-clones
 
 ### `config global`
 
-Interactively configure the source directory, injection mode, and items. Saved to `~/.config/repoinjector/config.yaml`.
+Interactively configure the source directory, injection mode, and items. Saved to `~/.config/repomni/config.yaml`.
 
 ```sh
-repoinjector config global
-repoinjector config global --source ~/shared-config
-repoinjector config global --source ~/shared-config --non-interactive
+repomni config global
+repomni config global --source ~/shared-config
+repomni config global --source ~/shared-config --non-interactive
 ```
 
 | Flag | Description |
@@ -185,10 +185,10 @@ repoinjector config global --source ~/shared-config --non-interactive
 
 ### `config repo`
 
-Interactively select which items and directory entries to inject into the current repository. Saved to `.git/repoinjector/config.yaml`.
+Interactively select which items and directory entries to inject into the current repository. Saved to `.git/repomni/config.yaml`.
 
 ```sh
-repoinjector config repo
+repomni config repo
 ```
 
 ### `inject`
@@ -196,11 +196,11 @@ repoinjector config repo
 Symlink or copy configured files into the target repo. Injected paths are added to `.git/info/exclude`.
 
 ```sh
-repoinjector inject
-repoinjector inject /path/to/repo
-repoinjector inject --all
-repoinjector inject --dry-run
-repoinjector inject --force
+repomni inject
+repomni inject /path/to/repo
+repomni inject --all
+repomni inject --dry-run
+repomni inject --force
 ```
 
 | Flag | Description |
@@ -216,8 +216,8 @@ repoinjector inject --force
 Remove all injected files/symlinks and clean up `.git/info/exclude`.
 
 ```sh
-repoinjector eject
-repoinjector eject --all
+repomni eject
+repomni eject --all
 ```
 
 | Flag | Description |
@@ -229,10 +229,10 @@ repoinjector eject --all
 Show injection status or git sync status for target repos.
 
 ```sh
-repoinjector status
-repoinjector status --all
-repoinjector status --git
-repoinjector status --json
+repomni status
+repomni status --all
+repomni status --git
+repomni status --json
 ```
 
 | Flag | Description |
@@ -247,8 +247,8 @@ repoinjector status --json
 Clone the parent repository and check out a new branch. Automatically injects configured files, runs the setup script, and sets state to `active`.
 
 ```sh
-repoinjector branch create my-feature
-repoinjector branch create my-feature --no-inject
+repomni branch create my-feature
+repomni branch create my-feature --no-inject
 ```
 
 | Flag | Description |
@@ -260,8 +260,8 @@ repoinjector branch create my-feature --no-inject
 Clone the parent repository and check out an existing remote branch. Directory name is derived from the branch name (e.g., `feature/my-thing` becomes `feature-my-thing`).
 
 ```sh
-repoinjector branch clone feature/my-thing
-repoinjector branch clone feature/my-thing --no-inject
+repomni branch clone feature/my-thing
+repomni branch clone feature/my-thing --no-inject
 ```
 
 | Flag | Description |
@@ -270,16 +270,16 @@ repoinjector branch clone feature/my-thing --no-inject
 
 ### `branch set-state`
 
-Set a workflow state for the current repo. Stored in `.git/repoinjector/config.yaml`.
+Set a workflow state for the current repo. Stored in `.git/repomni/config.yaml`.
 
 Predefined states: `active`, `review`, `approved`, `review-blocked`, `merged`, `closed`, `paused`. Custom states are also accepted (lowercase letters, digits, hyphens).
 
 ```sh
-repoinjector branch set-state active
-repoinjector branch set-state review
-repoinjector branch set-state closed
-repoinjector branch set-state my-custom-state
-repoinjector branch set-state --clear
+repomni branch set-state active
+repomni branch set-state review
+repomni branch set-state closed
+repomni branch set-state my-custom-state
+repomni branch set-state --clear
 ```
 
 | Flag | Description |
@@ -291,10 +291,10 @@ repoinjector branch set-state --clear
 List branch repos with state, git branch, and dirty status. States are color-coded: `active` (green), `review` (yellow), `closed` (red), `paused` (blue).
 
 ```sh
-repoinjector branch list
-repoinjector branch list /path/to/branches
-repoinjector branch list --state review
-repoinjector branch list --json
+repomni branch list
+repomni branch list /path/to/branches
+repomni branch list --state review
+repomni branch list --json
 ```
 
 | Flag | Description |
@@ -317,10 +317,10 @@ Example output:
 Run `sync code` and `sync state` together. First pulls git updates for all repos, then queries GitHub/GitLab for PR/MR status changes and updates workflow states.
 
 ```sh
-repoinjector sync
-repoinjector sync --dry-run
-repoinjector sync --autostash -j 4
-repoinjector sync --json
+repomni sync
+repomni sync --dry-run
+repomni sync --autostash -j 4
+repomni sync --json
 ```
 
 | Flag | Description |
@@ -337,12 +337,12 @@ repoinjector sync --json
 Fetch and pull updates for all repos under a directory. Dirty repos are skipped unless `--autostash` is used. Diverged repos are always skipped.
 
 ```sh
-repoinjector sync code
-repoinjector sync code --dry-run
-repoinjector sync code --autostash
-repoinjector sync code -j 4
-repoinjector sync code --strategy rebase
-repoinjector sync code --json
+repomni sync code
+repomni sync code --dry-run
+repomni sync code --autostash
+repomni sync code -j 4
+repomni sync code --strategy rebase
+repomni sync code --json
 ```
 
 | Flag | Description |
@@ -361,9 +361,9 @@ Query GitHub or GitLab for PR/MR status and update workflow states. Only repos w
 Requires `gh` (GitHub) or `glab` (GitLab) to be installed and authenticated.
 
 ```sh
-repoinjector sync state
-repoinjector sync state --dry-run
-repoinjector sync state --json
+repomni sync state
+repomni sync state --dry-run
+repomni sync state --json
 ```
 
 | Flag | Description |
@@ -376,8 +376,8 @@ repoinjector sync state --json
 List git repositories under a directory, one per line. Useful for piping to other tools.
 
 ```sh
-repoinjector list
-repoinjector list --names
+repomni list
+repomni list --names
 ```
 
 | Flag | Description |
@@ -386,10 +386,10 @@ repoinjector list --names
 
 ### `config script`
 
-Interactively create or edit a setup script that runs when you create a new branch with `repoinjector branch create`. Stored in `.git` and never committed.
+Interactively create or edit a setup script that runs when you create a new branch with `repomni branch create`. Stored in `.git` and never committed.
 
 ```sh
-repoinjector config script
+repomni config script
 ```
 
 ## How it works
@@ -402,7 +402,7 @@ repoinjector config script
 ## Development
 
 ```sh
-make build    # Build to bin/repoinjector
+make build    # Build to bin/repomni
 make test     # Run all tests
 make run      # Build and run
 make clean    # Remove build artifacts

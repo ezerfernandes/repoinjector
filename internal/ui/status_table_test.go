@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ezerfernandes/repoinjector/internal/config"
-	"github.com/ezerfernandes/repoinjector/internal/injector"
+	"github.com/ezerfernandes/repomni/internal/config"
+	"github.com/ezerfernandes/repomni/internal/injector"
 )
 
 // captureStdout captures stdout output from a function.

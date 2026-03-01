@@ -19,9 +19,9 @@ func init() {
 }
 
 var rootCmd = &cobra.Command{
-	Use:   "repoinjector",
+	Use:   "repomni",
 	Short: "Inject shared config files into multiple repo clones",
-	Long: `Repoinjector symlinks or copies shared configuration files (.claude/skills,
+	Long: `Repomni symlinks or copies shared configuration files (.claude/skills,
 .claude/hooks, .envrc, .env) from a central source into one or more target
 repository clones, keeping injected files invisible to git.`,
 }

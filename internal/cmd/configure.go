@@ -3,10 +3,10 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ezerfernandes/repoinjector/internal/config"
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
-	"github.com/ezerfernandes/repoinjector/internal/repoconfig"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/config"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/repoconfig"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -15,8 +15,8 @@ var configureCmd = &cobra.Command{
 	Short: "Configure injection settings for this repository",
 	Long: `Interactively select which items and entries to inject into this repository.
 
-The configuration is saved to .git/repoinjector/config.yaml and is used by
-"repoinjector inject" and "repoinjector branch" to filter which items get injected.`,
+The configuration is saved to .git/repomni/config.yaml and is used by
+"repomni inject" and "repomni branch" to filter which items get injected.`,
 	RunE: runConfigure,
 }
 
@@ -37,7 +37,7 @@ func runConfigure(cmd *cobra.Command, args []string) error {
 
 	globalCfg, err := config.Load()
 	if err != nil {
-		return fmt.Errorf("global config not found (run 'repoinjector config global' first): %w", err)
+		return fmt.Errorf("global config not found (run 'repomni config global' first): %w", err)
 	}
 
 	existingRepoCfg, err := repoconfig.Load(gitDir)

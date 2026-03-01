@@ -180,7 +180,7 @@ func TestLoad_LegacyConfig(t *testing.T) {
 	// Simulate a config file written before the state field existed.
 	tmpDir := t.TempDir()
 	gitDir := filepath.Join(tmpDir, ".git")
-	configDir := filepath.Join(gitDir, "repoinjector")
+	configDir := filepath.Join(gitDir, "repomni")
 	if err := os.MkdirAll(configDir, 0755); err != nil {
 		t.Fatal(err)
 	}

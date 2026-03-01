@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/charmbracelet/huh"
-	"github.com/ezerfernandes/repoinjector/internal/config"
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
-	"github.com/ezerfernandes/repoinjector/internal/injector"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/config"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/injector"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -22,7 +22,7 @@ var cleanCmd = &cobra.Command{
 	Long: `Find branch repos in merged or closed states and optionally delete them.
 
 Before deletion, branch metadata is archived as a JSON file in the parent
-directory (.repoinjector-archive.json), injected files are ejected, and the
+directory (.repomni-archive.json), injected files are ejected, and the
 directory is removed.
 
 If no directory is specified, the current directory is used.
@@ -242,9 +242,9 @@ type archiveEntry struct {
 	Info       ui.BranchInfo `json:"info"`
 }
 
-// archiveBranches appends branch metadata to .repoinjector-archive.json in parentDir.
+// archiveBranches appends branch metadata to .repomni-archive.json in parentDir.
 func archiveBranches(parentDir string, candidates []ui.CleanCandidate) error {
-	archivePath := filepath.Join(parentDir, ".repoinjector-archive.json")
+	archivePath := filepath.Join(parentDir, ".repomni-archive.json")
 
 	var entries []archiveEntry
 	if data, err := os.ReadFile(archivePath); err == nil {

@@ -6,9 +6,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
-	"github.com/ezerfernandes/repoinjector/internal/repoconfig"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/repoconfig"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 

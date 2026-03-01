@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ezerfernandes/repoinjector/internal/config"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/config"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 
 var settingsCmd = &cobra.Command{
 	Use:   "global",
-	Short: "Interactively configure repoinjector",
-	Long: `Run an interactive wizard to set up repoinjector. Configures the source
+	Short: "Interactively configure repomni",
+	Long: `Run an interactive wizard to set up repomni. Configures the source
 directory, injection mode, and which items to inject.
 
-The configuration is saved to ~/.config/repoinjector/config.yaml.`,
+The configuration is saved to ~/.config/repomni/config.yaml.`,
 	RunE: runSettings,
 }
 

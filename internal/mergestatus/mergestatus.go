@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/ezerfernandes/repoinjector/internal/repoconfig"
+	"github.com/ezerfernandes/repomni/internal/repoconfig"
 )
 
 // Platform represents a git hosting platform.
@@ -63,7 +63,7 @@ func DetectPlatform(mergeURL string) Platform {
 }
 
 // QueryMergeStatus queries the platform for the current PR/MR state
-// and returns the corresponding repoinjector workflow state.
+// and returns the corresponding repomni workflow state.
 func QueryMergeStatus(mergeURL string) (string, Platform, error) {
 	platform := DetectPlatform(mergeURL)
 

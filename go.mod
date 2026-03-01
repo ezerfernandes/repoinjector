@@ -1,4 +1,4 @@
-module github.com/ezerfernandes/repoinjector
+module github.com/ezerfernandes/repomni
 
 go 1.25.0
 

@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
-	"github.com/ezerfernandes/repoinjector/internal/scripter"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/scripter"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var scriptCmd = &cobra.Command{
 	Use:   "script",
 	Short: "Manage setup scripts for this repository",
 	Long: `Interactively create or edit a setup script that runs automatically
-when you create a new branch for this repository using "repoinjector branch".
+when you create a new branch for this repository using "repomni branch".
 
 The script is stored inside .git and is never committed.`,
 	RunE: runScript,

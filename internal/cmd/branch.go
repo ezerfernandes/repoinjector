@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/ezerfernandes/repoinjector/internal/brancher"
-	"github.com/ezerfernandes/repoinjector/internal/config"
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
-	"github.com/ezerfernandes/repoinjector/internal/injector"
-	"github.com/ezerfernandes/repoinjector/internal/repoconfig"
-	"github.com/ezerfernandes/repoinjector/internal/scripter"
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/brancher"
+	"github.com/ezerfernandes/repomni/internal/config"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/injector"
+	"github.com/ezerfernandes/repomni/internal/repoconfig"
+	"github.com/ezerfernandes/repomni/internal/scripter"
+	"github.com/ezerfernandes/repomni/internal/ui"
 	"github.com/spf13/cobra"
 )
 

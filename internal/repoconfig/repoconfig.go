@@ -6,11 +6,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/ezerfernandes/repoinjector/internal/config"
+	"github.com/ezerfernandes/repomni/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
-// RepoConfig stores per-repo injection preferences inside .git/repoinjector/config.yaml.
+// RepoConfig stores per-repo injection preferences inside .git/repomni/config.yaml.
 // It records which global config items and directory entries are relevant for a particular repo.
 type RepoConfig struct {
 	Version  int              `yaml:"version"`
@@ -30,7 +30,7 @@ type RepoItemConfig struct {
 
 // ConfigPath returns the path to the per-repo config file inside the git directory.
 func ConfigPath(gitDir string) string {
-	return filepath.Join(gitDir, "repoinjector", "config.yaml")
+	return filepath.Join(gitDir, "repomni", "config.yaml")
 }
 
 // Load reads the per-repo config. Returns (nil, nil) if the file does not exist.

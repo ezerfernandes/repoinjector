@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
-	"github.com/ezerfernandes/repoinjector/internal/config"
+	"github.com/ezerfernandes/repomni/internal/config"
 )
 
 type itemDef struct {

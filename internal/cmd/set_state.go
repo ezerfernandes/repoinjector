@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
-	"github.com/ezerfernandes/repoinjector/internal/repoconfig"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/repoconfig"
 	"github.com/spf13/cobra"
 )
 
@@ -13,7 +13,7 @@ var setStateCmd = &cobra.Command{
 	Use:   "set-state <state> [url]",
 	Short: "Set the workflow state for the current branch repo",
 	Long: `Set a workflow state label for the current repository. The state is stored
-in .git/repoinjector/config.yaml and displayed by the "branch list" command.
+in .git/repomni/config.yaml and displayed by the "branch list" command.
 
 Predefined states: active, review, approved, review-blocked, merged, closed, paused.
 Custom states are also accepted (lowercase letters, digits, hyphens).
@@ -21,7 +21,7 @@ Custom states are also accepted (lowercase letters, digits, hyphens).
 When setting state to "review", you may provide a PR/MR URL as the second argument.
 This URL is stored and used by the "sync state" command to track PR/MR status.
 
-  repoinjector branch set-state review https://github.com/org/repo/pull/42
+  repomni branch set-state review https://github.com/org/repo/pull/42
 
 Use "set-state --clear" to remove the state and merge URL.`,
 	Args: cobra.MaximumNArgs(2),

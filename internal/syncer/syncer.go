@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
 	"golang.org/x/sync/errgroup"
 )
 

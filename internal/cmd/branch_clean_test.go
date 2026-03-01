@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ezerfernandes/repoinjector/internal/ui"
+	"github.com/ezerfernandes/repomni/internal/ui"
 )
 
 func TestDirSize(t *testing.T) {
@@ -132,7 +132,7 @@ func TestArchiveBranches(t *testing.T) {
 		t.Fatalf("archiveBranches: %v", err)
 	}
 
-	archivePath := filepath.Join(dir, ".repoinjector-archive.json")
+	archivePath := filepath.Join(dir, ".repomni-archive.json")
 	data, err := os.ReadFile(archivePath)
 	if err != nil {
 		t.Fatalf("read archive: %v", err)
@@ -163,7 +163,7 @@ func TestArchiveBranches_Append(t *testing.T) {
 		{ArchivedAt: "2025-01-01T00:00:00Z", Info: ui.BranchInfo{Name: "old-branch"}},
 	}
 	data, _ := json.MarshalIndent(existing, "", "  ")
-	archivePath := filepath.Join(dir, ".repoinjector-archive.json")
+	archivePath := filepath.Join(dir, ".repomni-archive.json")
 	if err := os.WriteFile(archivePath, data, 0644); err != nil {
 		t.Fatal(err)
 	}

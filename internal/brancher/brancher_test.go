@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/ezerfernandes/repoinjector/internal/gitutil"
+	"github.com/ezerfernandes/repomni/internal/gitutil"
 )
 
 func run(t *testing.T, dir string, name string, args ...string) string {
