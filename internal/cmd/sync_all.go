@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -69,7 +70,7 @@ func runSyncAll(cmd *cobra.Command, args []string) error {
 	}
 
 	if len(errs) > 0 {
-		return fmt.Errorf("%s", strings.Join(errs, "; "))
+		return errors.New(strings.Join(errs, "; "))
 	}
 
 	return nil
