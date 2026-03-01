@@ -47,12 +47,11 @@ func PrintSessionsList(sessions []session.SessionMeta) {
 // PrintSessionMessages renders color-coded messages from a session.
 func PrintSessionMessages(meta session.SessionMeta, messages []session.Message, full bool) {
 	fmt.Println()
-	fmt.Printf("  Session: %s\n", idStyle.Render(meta.SessionID))
-	fmt.Printf("  Project: %s\n", meta.ProjectPath)
-	fmt.Printf("  Created: %s   Messages: %d   Duration: %s\n",
-		meta.CreatedAt.Format(time.RFC3339),
-		meta.MessageCount,
-		formatDuration(meta.DurationSecs))
+	fmt.Printf("  %s  %s\n", labelStyle.Render("Session: "), idStyle.Render(meta.SessionID))
+	fmt.Printf("  %s  %s\n", labelStyle.Render("Project: "), meta.ProjectPath)
+	fmt.Printf("  %s  %s\n", labelStyle.Render("Created: "), meta.CreatedAt.Format(time.RFC3339))
+	fmt.Printf("  %s  %d\n", labelStyle.Render("Messages:"), meta.MessageCount)
+	fmt.Printf("  %s  %s\n", labelStyle.Render("Duration:"), formatDuration(meta.DurationSecs))
 	fmt.Println()
 
 	for _, msg := range messages {
@@ -80,46 +79,71 @@ func PrintSessionMessages(meta session.SessionMeta, messages []session.Message, 
 // PrintSessionStats renders aggregate statistics.
 func PrintSessionStats(stats session.Stats) {
 	fmt.Println()
-	fmt.Printf("  Sessions:  %d\n", stats.TotalSessions)
-	fmt.Printf("  Messages:  %d\n", stats.TotalMessages)
-	fmt.Printf("  Duration:  %s\n", formatDuration(stats.TotalDurationSecs))
-	fmt.Printf("  Tokens:    %s input / %s output\n",
+	fmt.Printf("  %s  %d\n", labelStyle.Render("Sessions:"), stats.TotalSessions)
+	fmt.Printf("  %s  %d\n", labelStyle.Render("Messages:"), stats.TotalMessages)
+	fmt.Printf("  %s  %s\n", labelStyle.Render("Duration:"), formatDuration(stats.TotalDurationSecs))
+	fmt.Printf("  %s  %s input / %s output\n", labelStyle.Render("Tokens:  "),
 		formatCount(stats.TotalTokens.InputTokens),
 		formatCount(stats.TotalTokens.OutputTokens))
 	if stats.TotalTokens.CacheReadTokens > 0 {
-		fmt.Printf("  Cache:     %s read / %s created\n",
+		fmt.Printf("  %s  %s read / %s created\n", labelStyle.Render("Cache:   "),
 			formatCount(stats.TotalTokens.CacheReadTokens),
 			formatCount(stats.TotalTokens.CacheCreationTokens))
 	}
-	fmt.Printf("  Size:      %s\n", formatSize(stats.TotalSizeBytes))
+	fmt.Printf("  %s  %s\n", labelStyle.Render("Size:    "), formatSize(stats.TotalSizeBytes))
 	if !stats.OldestSession.IsZero() {
-		fmt.Printf("  Oldest:    %s\n", stats.OldestSession.Format("2006-01-02"))
+		fmt.Printf("  %s  %s\n", labelStyle.Render("Oldest:  "), stats.OldestSession.Format("2006-01-02"))
 	}
 	if !stats.NewestSession.IsZero() {
-		fmt.Printf("  Newest:    %s\n", stats.NewestSession.Format("2006-01-02"))
+		fmt.Printf("  %s  %s\n", labelStyle.Render("Newest:  "), stats.NewestSession.Format("2006-01-02"))
 	}
 	fmt.Println()
 }
 
-// PrintSearchResults renders search matches.
-func PrintSearchResults(results []session.SearchResult) {
+// PrintSearchResults renders search matches with the query highlighted in bold.
+func PrintSearchResults(results []session.SearchResult, query string) {
 	if len(results) == 0 {
 		fmt.Println("No matches found.")
 		return
 	}
 
+	bold := lipgloss.NewStyle().Bold(true)
+
 	fmt.Println()
 	for _, r := range results {
 		id := idStyle.Render(truncateStr(r.Meta.SessionID, 8))
-		preview := truncateStr(r.Meta.FirstMessage, 50)
+		preview := highlightQuery(truncateStr(r.Meta.FirstMessage, 50), query, bold)
 		fmt.Printf("  %s  %s  (%d matches)\n", id, preview, len(r.Matches))
 
 		for _, m := range r.Matches {
 			typeLabel := dimStyle.Render(m.Type)
-			fmt.Printf("    [%s] %s\n", typeLabel, m.Preview)
+			highlighted := highlightQuery(m.Preview, query, bold)
+			fmt.Printf("    [%s] %s\n", typeLabel, highlighted)
 		}
 		fmt.Println()
 	}
+}
+
+// highlightQuery replaces all case-insensitive occurrences of query in text
+// with the bold-styled version, preserving the original casing.
+func highlightQuery(text, query string, style lipgloss.Style) string {
+	if query == "" {
+		return text
+	}
+	lower := strings.ToLower(text)
+	lowerQ := strings.ToLower(query)
+	var b strings.Builder
+	for i := 0; i < len(lower); {
+		idx := strings.Index(lower[i:], lowerQ)
+		if idx < 0 {
+			b.WriteString(text[i:])
+			break
+		}
+		b.WriteString(text[i : i+idx])
+		b.WriteString(style.Render(text[i+idx : i+idx+len(query)]))
+		i += idx + len(query)
+	}
+	return b.String()
 }
 
 func truncateStr(s string, maxLen int) string {
