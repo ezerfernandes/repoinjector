@@ -16,7 +16,7 @@ const (
 	// ModeSymlink creates symbolic links pointing to the source files.
 	ModeSymlink InjectionMode = "symlink"
 	// ModeCopy creates independent copies of the source files.
-	ModeCopy    InjectionMode = "copy"
+	ModeCopy InjectionMode = "copy"
 )
 
 // ItemType distinguishes file items from directory items.
@@ -24,7 +24,7 @@ type ItemType string
 
 const (
 	// ItemTypeFile represents a single file to inject.
-	ItemTypeFile      ItemType = "file"
+	ItemTypeFile ItemType = "file"
 	// ItemTypeDirectory represents a directory whose entries are merged individually.
 	ItemTypeDirectory ItemType = "directory"
 )

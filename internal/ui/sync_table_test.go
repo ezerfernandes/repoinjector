@@ -126,7 +126,7 @@ func TestPrintSyncJSON(t *testing.T) {
 	})
 
 	// Verify valid JSON
-	var parsed map[string]interface{}
+	var parsed map[string]any
 	if err := json.Unmarshal([]byte(output), &parsed); err != nil {
 		t.Fatalf("PrintSyncJSON output is not valid JSON: %v\nOutput: %s", err, output)
 	}
@@ -153,7 +153,7 @@ func TestPrintGitStatusJSON(t *testing.T) {
 	})
 
 	// Verify valid JSON array
-	var parsed []interface{}
+	var parsed []any
 	if err := json.Unmarshal([]byte(output), &parsed); err != nil {
 		t.Fatalf("PrintGitStatusJSON output is not valid JSON: %v\nOutput: %s", err, output)
 	}
@@ -545,7 +545,7 @@ func TestPrintGitStatusJSON_Multiple(t *testing.T) {
 		PrintGitStatusJSON(statuses)
 	})
 
-	var parsed []map[string]interface{}
+	var parsed []map[string]any
 	if err := json.Unmarshal([]byte(output), &parsed); err != nil {
 		t.Fatalf("invalid JSON: %v", err)
 	}
