@@ -164,6 +164,20 @@ func TestPrintBranchesTable_NoFootnotes(t *testing.T) {
 	}
 }
 
+func TestPrintBranchesTable_EmptyBranchNoDiffersFootnote(t *testing.T) {
+	infos := []BranchInfo{
+		{Path: "/repos/feat-a", Name: "feat-a", Branch: "", State: "active"},
+	}
+
+	output := captureStdout(t, func() {
+		PrintBranchesTable(infos)
+	})
+
+	if strings.Contains(output, "Name and Branch differs") {
+		t.Error("should not show differs footnote when Branch is empty")
+	}
+}
+
 func TestPrintBranchesTable_LongNames(t *testing.T) {
 	infos := []BranchInfo{
 		{Path: "/repos/very-long-feature-branch-name", Name: "very-long-feature-branch-name", Branch: "very-long-feature-branch-name", State: "review-blocked"},

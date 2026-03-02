@@ -31,7 +31,7 @@ func PrintBranchesTable(infos []BranchInfo) {
 			display += "*"
 			hasRemote = true
 		}
-		if info.Name != info.Branch {
+		if info.Branch != "" && info.Name != info.Branch {
 			hasDiffers = true
 		}
 		if len(display) > nameW {
