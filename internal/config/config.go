@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -88,6 +89,7 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 
+	slog.Debug("loading global config", "path", path)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("cannot read config (run 'repomni config global' first): %w", err)
@@ -98,6 +100,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("invalid config file %s: %w", path, err)
 	}
 
+	slog.Debug("global config loaded", "sourceDir", cfg.SourceDir, "mode", cfg.Mode, "items", len(cfg.Items))
 	return &cfg, nil
 }
 

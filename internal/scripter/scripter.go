@@ -2,6 +2,7 @@ package scripter
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -51,12 +52,18 @@ func DeleteScript(gitDir string, scriptType string) error {
 func RunScript(gitDir string, scriptType string, workDir string) error {
 	path := ScriptPath(gitDir, scriptType)
 	if _, err := os.Stat(path); err != nil {
+		slog.Debug("script not found, skipping", "type", scriptType, "path", path)
 		return nil
 	}
+	slog.Debug("executing script", "type", scriptType, "path", path, "workDir", workDir)
 	cmd := exec.Command("bash", path)
 	cmd.Dir = workDir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
-	return cmd.Run()
+	if err := cmd.Run(); err != nil {
+		slog.Error("script execution failed", "type", scriptType, "path", path, "error", err)
+		return err
+	}
+	return nil
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,6 +77,7 @@ func findEnvInParents(startDir string) envSearchResult {
 
 // Inject places each enabled config item into targetDir using symlinks or copies.
 func Inject(cfg *config.Config, targetDir string, opts Options) ([]Result, error) {
+	slog.Debug("injecting into target", "target", targetDir, "mode", opts.Mode, "dryRun", opts.DryRun)
 	targetDir, err := filepath.Abs(targetDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot resolve target path: %w", err)
@@ -194,6 +196,7 @@ func Inject(cfg *config.Config, targetDir string, opts Options) ([]Result, error
 
 // Eject removes all previously injected items from targetDir and cleans up git excludes.
 func Eject(cfg *config.Config, targetDir string) ([]Result, error) {
+	slog.Debug("ejecting from target", "target", targetDir)
 	targetDir, err := filepath.Abs(targetDir)
 	if err != nil {
 		return nil, fmt.Errorf("cannot resolve target path: %w", err)

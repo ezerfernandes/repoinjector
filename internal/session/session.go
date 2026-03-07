@@ -5,6 +5,7 @@ package session
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -103,6 +104,7 @@ func DiscoverWithLimit(projectPath string, limit int) ([]SessionMeta, error) {
 	if err != nil {
 		return nil, err
 	}
+	slog.Debug("discovering sessions", "dir", dir, "limit", limit)
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {

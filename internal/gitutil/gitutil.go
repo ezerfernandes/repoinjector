@@ -3,6 +3,7 @@ package gitutil
 import (
 	"bytes"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -69,12 +70,14 @@ func FindGitRepos(parentDir string) ([]string, error) {
 
 // RunGit executes a git command in the given directory and returns trimmed stdout.
 func RunGit(dir string, args ...string) (string, error) {
+	slog.Debug("running git command", "dir", dir, "args", args)
 	cmd := exec.Command("git", args...)
 	cmd.Dir = dir
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
+		slog.Error("git command failed", "dir", dir, "args", args, "stderr", strings.TrimSpace(stderr.String()), "error", err)
 		return "", fmt.Errorf("git %s: %s: %w", strings.Join(args, " "), strings.TrimSpace(stderr.String()), err)
 	}
 	return strings.TrimSpace(stdout.String()), nil

@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"log/slog"
 	"path/filepath"
 
 	"github.com/ezerfernandes/repomni/internal/gitutil"
@@ -86,7 +86,7 @@ func runSyncCode(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("%d repos had errors", summary.Errors)
 	}
 	if summary.Conflicts > 0 {
-		fmt.Fprintf(os.Stderr, "Warning: %d repo(s) have conflicts requiring manual resolution\n", summary.Conflicts)
+		slog.Warn("repos have conflicts requiring manual resolution", "count", summary.Conflicts)
 	}
 
 	return nil

@@ -2,6 +2,7 @@ package brancher
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -132,10 +133,14 @@ func Branch(workDir, branchName string) (*Result, error) {
 	}
 
 	if _, err := gitutil.RunGit(targetDir, "checkout", "-b", branchName); err != nil {
-		os.RemoveAll(targetDir)
+		slog.Warn("checkout failed, cleaning up clone", "dir", targetDir, "error", err)
+		if rmErr := os.RemoveAll(targetDir); rmErr != nil {
+			slog.Warn("cleanup of failed clone directory failed", "dir", targetDir, "error", rmErr)
+		}
 		return nil, fmt.Errorf("git checkout failed: %w", err)
 	}
 
+	slog.Info("branch created", "branch", branchName, "dir", targetDir)
 	return &Result{
 		ParentRepo: parentRepo,
 		RemoteURL:  url,
@@ -178,10 +183,14 @@ func Clone(workDir, branchName string) (*Result, error) {
 	}
 
 	if _, err := gitutil.RunGit(targetDir, "checkout", branchName); err != nil {
-		os.RemoveAll(targetDir)
+		slog.Warn("checkout failed, cleaning up clone", "dir", targetDir, "error", err)
+		if rmErr := os.RemoveAll(targetDir); rmErr != nil {
+			slog.Warn("cleanup of failed clone directory failed", "dir", targetDir, "error", rmErr)
+		}
 		return nil, fmt.Errorf("git checkout failed: %w", err)
 	}
 
+	slog.Info("clone created", "branch", branchName, "dir", targetDir)
 	return &Result{
 		ParentRepo: parentRepo,
 		RemoteURL:  url,

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
@@ -140,7 +141,7 @@ func runClean(cmd *cobra.Command, args []string) error {
 	}
 
 	if err := archiveBranches(target, candidates); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: could not archive metadata: %v\n", err)
+		slog.Warn("could not archive metadata", "error", err)
 	}
 
 	cfg, cfgErr := config.Load()
@@ -154,12 +155,12 @@ func runClean(cmd *cobra.Command, args []string) error {
 
 		if cfgErr == nil {
 			if _, ejectErr := injector.Eject(cfg, c.Info.Path); ejectErr != nil {
-				fmt.Fprintf(os.Stderr, "Warning: eject failed for %s: %v\n", c.Info.Name, ejectErr)
+				slog.Warn("eject failed", "repo", c.Info.Name, "error", ejectErr)
 			}
 		}
 
 		if err := os.RemoveAll(c.Info.Path); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: cannot remove %s: %v\n", c.Info.Name, err)
+			slog.Error("cannot remove directory", "repo", c.Info.Name, "error", err)
 			hasErrors = true
 			continue
 		}
@@ -201,13 +202,15 @@ func pluralY(n int) string {
 // dirSize calculates the total size of a directory tree.
 func dirSize(path string) int64 {
 	var size int64
-	_ = filepath.WalkDir(path, func(_ string, d fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(path, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
+			slog.Debug("dirSize walk error", "path", p, "error", err)
 			return nil
 		}
 		if !d.IsDir() {
 			info, err := d.Info()
 			if err != nil {
+				slog.Debug("dirSize stat error", "path", p, "error", err)
 				return nil
 			}
 			size += info.Size()
@@ -248,7 +251,9 @@ func archiveBranches(parentDir string, candidates []ui.CleanCandidate) error {
 
 	var entries []archiveEntry
 	if data, err := os.ReadFile(archivePath); err == nil {
-		_ = json.Unmarshal(data, &entries)
+		if unmarshalErr := json.Unmarshal(data, &entries); unmarshalErr != nil {
+			slog.Warn("could not parse existing archive file", "path", archivePath, "error", unmarshalErr)
+		}
 	}
 
 	now := time.Now().Format(time.RFC3339)

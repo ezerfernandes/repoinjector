@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"os"
+	"log/slog"
 
 	"github.com/ezerfernandes/repomni/internal/brancher"
 	"github.com/ezerfernandes/repomni/internal/gitutil"
@@ -50,7 +50,7 @@ func runClone(cmd *cobra.Command, args []string) error {
 	// Auto-inject into the new repo unless --no-inject is set.
 	if !cloneNoInject {
 		if err := autoInject(result, parentGitDir, parentGitDirErr); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: auto-injection failed: %v\n", err)
+			slog.Warn("auto-injection failed", "error", err)
 		}
 	}
 
@@ -64,7 +64,7 @@ func runClone(cmd *cobra.Command, args []string) error {
 		newCfg.Remote = true
 		newCfg.Ticket = cloneTicket
 		if err := repoconfig.Save(newGitDir, newCfg); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: could not set initial state: %v\n", err)
+			slog.Warn("could not set initial state", "error", err)
 		}
 	}
 
@@ -73,7 +73,7 @@ func runClone(cmd *cobra.Command, args []string) error {
 		if _, exists := scripter.GetScript(parentGitDir, scripter.ScriptSetup); exists {
 			fmt.Println("Running setup script...")
 			if err := scripter.RunScript(parentGitDir, scripter.ScriptSetup, result.TargetDir); err != nil {
-				fmt.Fprintf(os.Stderr, "Warning: setup script failed: %v\n", err)
+				slog.Warn("setup script failed", "error", err)
 			}
 		}
 	}

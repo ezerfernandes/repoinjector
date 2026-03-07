@@ -3,6 +3,7 @@ package syncer
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"path/filepath"
 	"sync"
 
@@ -66,6 +67,7 @@ type SyncSummary struct {
 
 // CheckStatus determines the git sync status of a single repo.
 func CheckStatus(repoDir string, noFetch bool) RepoStatus {
+	slog.Debug("checking repo status", "repo", repoDir, "noFetch", noFetch)
 	status := RepoStatus{
 		Path: repoDir,
 		Name: filepath.Base(repoDir),
@@ -147,6 +149,7 @@ func CheckStatus(repoDir string, noFetch bool) RepoStatus {
 
 // SyncRepo attempts to pull updates for a single repository.
 func SyncRepo(repoDir string, opts SyncOptions) SyncResult {
+	slog.Debug("syncing repo", "repo", repoDir, "strategy", opts.Strategy, "dryRun", opts.DryRun)
 	status := CheckStatus(repoDir, opts.NoFetch)
 	result := SyncResult{RepoStatus: status}
 
@@ -198,6 +201,7 @@ func SyncRepo(repoDir string, opts SyncOptions) SyncResult {
 
 	_, err := gitutil.Pull(repoDir, strategy, opts.AutoStash && status.Dirty)
 	if err != nil {
+		slog.Error("pull failed", "repo", repoDir, "error", err)
 		result.Action = "error"
 		result.PostDetail = fmt.Sprintf("pull failed: %v", err)
 		result.State = StateError
@@ -205,6 +209,7 @@ func SyncRepo(repoDir string, opts SyncOptions) SyncResult {
 		return result
 	}
 
+	slog.Debug("pull succeeded", "repo", repoDir, "commits", status.Behind)
 	result.Action = "pulled"
 	result.State = StatePulled
 	result.PostDetail = fmt.Sprintf("pulled %d commits", status.Behind)
@@ -262,6 +267,7 @@ func SyncAll(repos []string, opts SyncOptions) ([]SyncResult, SyncSummary) {
 		}
 	}
 
+	slog.Debug("sync complete", "total", summary.Total, "pulled", summary.Pulled, "errors", summary.Errors)
 	return results, summary
 }
 

@@ -3,6 +3,7 @@ package repoconfig
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 
@@ -36,9 +37,12 @@ func ConfigPath(gitDir string) string {
 
 // Load reads the per-repo config. Returns (nil, nil) if the file does not exist.
 func Load(gitDir string) (*RepoConfig, error) {
-	data, err := os.ReadFile(ConfigPath(gitDir))
+	path := ConfigPath(gitDir)
+	slog.Debug("loading repo config", "path", path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
+			slog.Debug("no repo config found", "path", path)
 			return nil, nil
 		}
 		return nil, fmt.Errorf("cannot read repo config: %w", err)
@@ -48,6 +52,7 @@ func Load(gitDir string) (*RepoConfig, error) {
 	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("invalid repo config: %w", err)
 	}
+	slog.Debug("repo config loaded", "gitDir", gitDir, "state", cfg.State, "items", len(cfg.Items))
 	return &cfg, nil
 }
 
