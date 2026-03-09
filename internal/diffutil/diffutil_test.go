@@ -56,6 +56,55 @@ func TestColorDiff_PreservesContent(t *testing.T) {
 	}
 }
 
+func TestColorDiff_CharLevelHighlighting(t *testing.T) {
+	// Simulate a linter error where only the line number changed.
+	diff := "--- main\n+++ branch\n@@ -1 +1 @@\n-main.go:10: unused variable\n+main.go:25: unused variable\n"
+	colored := ColorDiff(diff)
+	// Both the old and new content must be preserved.
+	if !strings.Contains(colored, "10") || !strings.Contains(colored, "25") {
+		t.Error("ColorDiff should preserve the changed line numbers")
+	}
+	if !strings.Contains(colored, "unused variable") {
+		t.Error("ColorDiff should preserve the unchanged text")
+	}
+}
+
+func TestColorDiff_PureAddition(t *testing.T) {
+	// + lines without preceding - lines should still render.
+	diff := "--- main\n+++ branch\n@@ -0,0 +1 @@\n+new line\n"
+	colored := ColorDiff(diff)
+	if !strings.Contains(colored, "new line") {
+		t.Error("ColorDiff should render pure additions")
+	}
+}
+
+func TestHighlightLinePair(t *testing.T) {
+	r, a := highlightLinePair("-main.go:10: error msg", "+main.go:25: error msg")
+	// The unchanged parts ("main.go:", ": error msg") must be present.
+	if !strings.Contains(r, "main.go:") || !strings.Contains(a, "main.go:") {
+		t.Error("highlightLinePair should preserve common prefix")
+	}
+	if !strings.Contains(r, "error msg") || !strings.Contains(a, "error msg") {
+		t.Error("highlightLinePair should preserve common suffix")
+	}
+	// The changed parts ("10" and "25") must be present.
+	if !strings.Contains(r, "10") || !strings.Contains(a, "25") {
+		t.Error("highlightLinePair should preserve changed characters")
+	}
+}
+
+func TestSplitChars(t *testing.T) {
+	got := splitChars("abc")
+	if len(got) != 3 || got[0] != "a" || got[1] != "b" || got[2] != "c" {
+		t.Errorf("splitChars(\"abc\") = %v, want [a b c]", got)
+	}
+	// Empty string.
+	got = splitChars("")
+	if len(got) != 0 {
+		t.Errorf("splitChars(\"\") = %v, want []", got)
+	}
+}
+
 func TestSummaryLine_Identical(t *testing.T) {
 	text := "same\n"
 	got := SummaryLine(text, text)
