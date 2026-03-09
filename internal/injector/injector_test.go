@@ -19,8 +19,12 @@ func setupTestEnv(t *testing.T) (sourceDir, targetDir string, cfg *config.Config
 	rootDir := t.TempDir()
 	sourceDir = filepath.Join(rootDir, "source")
 	targetDir = filepath.Join(rootDir, "target")
-	os.MkdirAll(sourceDir, 0755)
-	os.MkdirAll(targetDir, 0755)
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	// Init git repo in target
 	cmd := exec.Command("git", "init", targetDir)
@@ -29,13 +33,23 @@ func setupTestEnv(t *testing.T) (sourceDir, targetDir string, cfg *config.Config
 	}
 
 	// Create source files (defaults: skills/, hooks.json at source root)
-	os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644)
-	os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Place .env and .envrc in rootDir (parent of target) for parent search
-	os.WriteFile(filepath.Join(rootDir, ".envrc"), []byte("export FOO=bar"), 0644)
-	os.WriteFile(filepath.Join(rootDir, ".env"), []byte("SECRET=123"), 0644)
+	if err := os.WriteFile(filepath.Join(rootDir, ".envrc"), []byte("export FOO=bar"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(rootDir, ".env"), []byte("SECRET=123"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	cfg = &config.Config{
 		Version:   1,
@@ -96,7 +110,9 @@ func TestInjectSymlink(t *testing.T) {
 func TestInjectIdempotent(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink}); err != nil {
+		t.Fatalf("first Inject failed: %v", err)
+	}
 	results, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
 	if err != nil {
 		t.Fatalf("second Inject failed: %v", err)
@@ -182,7 +198,9 @@ func TestInjectRejectsSameDir(t *testing.T) {
 	cfg.SourceDir = sourceDir
 
 	// Make source a git repo too
-	exec.Command("git", "init", sourceDir).Run()
+	if err := exec.Command("git", "init", sourceDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
 	_, err := Inject(cfg, sourceDir, Options{})
 	if err == nil {
@@ -194,7 +212,9 @@ func TestInjectSelectedEntries(t *testing.T) {
 	sourceDir, targetDir, cfg := setupTestEnv(t)
 
 	// Add a second skill to the source
-	os.WriteFile(filepath.Join(sourceDir, "skills", "another.md"), []byte("another skill"), 0644)
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "another.md"), []byte("another skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Only select "test.md", deselect "another.md"
 	opts := Options{
@@ -243,12 +263,24 @@ func TestInjectSelectedEntries_RepoConfigFlow(t *testing.T) {
 	sourceDir, targetDir, _ := setupTestEnv(t)
 
 	// Create 3 skills in source.
-	os.MkdirAll(filepath.Join(sourceDir, "skills", "hello-world"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "hello-world", "README.md"), []byte("hello"), 0644)
-	os.MkdirAll(filepath.Join(sourceDir, "skills", "web-browser"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "web-browser", "README.md"), []byte("browser"), 0644)
-	os.MkdirAll(filepath.Join(sourceDir, "skills", "jira-tasks"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "jira-tasks", "README.md"), []byte("jira"), 0644)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills", "hello-world"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "hello-world", "README.md"), []byte("hello"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills", "web-browser"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "web-browser", "README.md"), []byte("browser"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills", "jira-tasks"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "jira-tasks", "README.md"), []byte("jira"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Filtered config (as FilterGlobalConfig would produce): only skills enabled.
 	filteredCfg := &config.Config{
@@ -307,12 +339,24 @@ func TestInjectWithoutSelectedEntries_InjectsAllSkills(t *testing.T) {
 	// When no repo config exists, all skills should be injected.
 	sourceDir, targetDir, _ := setupTestEnv(t)
 
-	os.MkdirAll(filepath.Join(sourceDir, "skills", "hello-world"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "hello-world", "README.md"), []byte("hello"), 0644)
-	os.MkdirAll(filepath.Join(sourceDir, "skills", "web-browser"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "web-browser", "README.md"), []byte("browser"), 0644)
-	os.MkdirAll(filepath.Join(sourceDir, "skills", "jira-tasks"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "jira-tasks", "README.md"), []byte("jira"), 0644)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills", "hello-world"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "hello-world", "README.md"), []byte("hello"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills", "web-browser"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "web-browser", "README.md"), []byte("browser"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills", "jira-tasks"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "jira-tasks", "README.md"), []byte("jira"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	cfg := &config.Config{
 		Version:   1,
@@ -349,8 +393,12 @@ func TestInjectPreservesExistingSkills(t *testing.T) {
 
 	// Pre-create .claude/skills with an existing skill
 	existingSkillDir := filepath.Join(targetDir, ".claude", "skills")
-	os.MkdirAll(existingSkillDir, 0755)
-	os.WriteFile(filepath.Join(existingSkillDir, "existing.md"), []byte("existing skill"), 0644)
+	if err := os.MkdirAll(existingSkillDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(existingSkillDir, "existing.md"), []byte("existing skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	_, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
 	if err != nil {
@@ -382,8 +430,12 @@ func TestInjectConflictingSkillWarning(t *testing.T) {
 
 	// Pre-create a skill with the SAME name as one in source
 	existingSkillDir := filepath.Join(targetDir, ".claude", "skills")
-	os.MkdirAll(existingSkillDir, 0755)
-	os.WriteFile(filepath.Join(existingSkillDir, "test.md"), []byte("my local skill"), 0644)
+	if err := os.MkdirAll(existingSkillDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(existingSkillDir, "test.md"), []byte("my local skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	results, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
 	if err != nil {
@@ -420,7 +472,9 @@ func TestInjectConflictingSkillWarning(t *testing.T) {
 func TestEject(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
 
 	results, err := Eject(cfg, targetDir)
 	if err != nil {
@@ -454,11 +508,17 @@ func TestEjectPreservesExistingSkills(t *testing.T) {
 
 	// Pre-create an existing skill
 	existingSkillDir := filepath.Join(targetDir, ".claude", "skills")
-	os.MkdirAll(existingSkillDir, 0755)
-	os.WriteFile(filepath.Join(existingSkillDir, "existing.md"), []byte("keep me"), 0644)
+	if err := os.MkdirAll(existingSkillDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(existingSkillDir, "existing.md"), []byte("keep me"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Inject (will add test.md symlink alongside existing.md)
-	Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
 
 	// Eject
 	results, err := Eject(cfg, targetDir)
@@ -496,16 +556,30 @@ func TestInjectEnvNotFoundInParentGitRepo(t *testing.T) {
 	rootDir := t.TempDir()
 	sourceDir := filepath.Join(rootDir, "source")
 	targetDir := filepath.Join(rootDir, "target")
-	os.MkdirAll(sourceDir, 0755)
-	os.MkdirAll(targetDir, 0755)
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	// Make rootDir a git repo (parent git repo boundary) with no .env/.envrc
-	exec.Command("git", "init", rootDir).Run()
-	exec.Command("git", "init", targetDir).Run()
+	if err := exec.Command("git", "init", rootDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
+	if err := exec.Command("git", "init", targetDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
-	os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644)
-	os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	cfg := &config.Config{
 		Version:   1,
@@ -535,17 +609,31 @@ func TestInjectEnvPartialFind(t *testing.T) {
 	rootDir := t.TempDir()
 	sourceDir := filepath.Join(rootDir, "source")
 	targetDir := filepath.Join(rootDir, "target")
-	os.MkdirAll(sourceDir, 0755)
-	os.MkdirAll(targetDir, 0755)
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
-	exec.Command("git", "init", targetDir).Run()
+	if err := exec.Command("git", "init", targetDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
 	// Only place .env in rootDir, not .envrc
-	os.WriteFile(filepath.Join(rootDir, ".env"), []byte("SECRET=123"), 0644)
+	if err := os.WriteFile(filepath.Join(rootDir, ".env"), []byte("SECRET=123"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
-	os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644)
-	os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	cfg := &config.Config{
 		Version:   1,
@@ -604,7 +692,9 @@ func TestInjectForceOverwrite(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
 	// Create a regular file at the symlink target
-	os.WriteFile(filepath.Join(targetDir, ".envrc"), []byte("existing"), 0644)
+	if err := os.WriteFile(filepath.Join(targetDir, ".envrc"), []byte("existing"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	results, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink, Force: true})
 	if err != nil {
@@ -632,7 +722,9 @@ func TestInjectForceOverwrite(t *testing.T) {
 func TestInjectCopyIdempotent(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeCopy})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeCopy}); err != nil {
+		t.Fatalf("first Inject failed: %v", err)
+	}
 	results, err := Inject(cfg, targetDir, Options{Mode: config.ModeCopy})
 	if err != nil {
 		t.Fatalf("second copy Inject failed: %v", err)
@@ -649,10 +741,14 @@ func TestInjectCopyIdempotent(t *testing.T) {
 func TestInjectCopyForceOverwrite(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeCopy})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeCopy}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
 
 	// Modify a copied file so content differs
-	os.WriteFile(filepath.Join(targetDir, ".envrc"), []byte("modified"), 0644)
+	if err := os.WriteFile(filepath.Join(targetDir, ".envrc"), []byte("modified"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Without force, should skip with "different content" message
 	results, err := Inject(cfg, targetDir, Options{Mode: config.ModeCopy})
@@ -680,8 +776,12 @@ func TestInjectCopyForceOverwrite(t *testing.T) {
 func TestStatusAfterEject(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
-	Eject(cfg, targetDir)
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
+	if _, err := Eject(cfg, targetDir); err != nil {
+		t.Fatalf("Eject failed: %v", err)
+	}
 
 	statuses, err := Status(cfg, targetDir)
 	if err != nil {
@@ -698,8 +798,12 @@ func TestFilesEqual_IdenticalContent(t *testing.T) {
 	dir := t.TempDir()
 	a := filepath.Join(dir, "a.txt")
 	b := filepath.Join(dir, "b.txt")
-	os.WriteFile(a, []byte("hello world"), 0644)
-	os.WriteFile(b, []byte("hello world"), 0644)
+	if err := os.WriteFile(a, []byte("hello world"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(b, []byte("hello world"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if !filesEqual(a, b) {
 		t.Error("filesEqual should return true for identical files")
@@ -710,8 +814,12 @@ func TestFilesEqual_DifferentContent(t *testing.T) {
 	dir := t.TempDir()
 	a := filepath.Join(dir, "a.txt")
 	b := filepath.Join(dir, "b.txt")
-	os.WriteFile(a, []byte("hello"), 0644)
-	os.WriteFile(b, []byte("world"), 0644)
+	if err := os.WriteFile(a, []byte("hello"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(b, []byte("world"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if filesEqual(a, b) {
 		t.Error("filesEqual should return false for different files")
@@ -722,8 +830,12 @@ func TestFilesEqual_TrimsWhitespace(t *testing.T) {
 	dir := t.TempDir()
 	a := filepath.Join(dir, "a.txt")
 	b := filepath.Join(dir, "b.txt")
-	os.WriteFile(a, []byte("hello\n"), 0644)
-	os.WriteFile(b, []byte("hello  \n\n"), 0644)
+	if err := os.WriteFile(a, []byte("hello\n"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(b, []byte("hello  \n\n"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if !filesEqual(a, b) {
 		t.Error("filesEqual should trim trailing whitespace when comparing")
@@ -733,7 +845,9 @@ func TestFilesEqual_TrimsWhitespace(t *testing.T) {
 func TestFilesEqual_NonExistentFile(t *testing.T) {
 	dir := t.TempDir()
 	a := filepath.Join(dir, "a.txt")
-	os.WriteFile(a, []byte("hello"), 0644)
+	if err := os.WriteFile(a, []byte("hello"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 	b := filepath.Join(dir, "nonexistent.txt")
 
 	if filesEqual(a, b) {
@@ -778,7 +892,9 @@ func TestRemoveIfEmptyDir(t *testing.T) {
 	// Empty directory should be removed
 	dir := t.TempDir()
 	emptyDir := filepath.Join(dir, "empty")
-	os.MkdirAll(emptyDir, 0755)
+	if err := os.MkdirAll(emptyDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	removeIfEmptyDir(emptyDir)
 
@@ -790,8 +906,12 @@ func TestRemoveIfEmptyDir(t *testing.T) {
 func TestRemoveIfEmptyDir_NonEmpty(t *testing.T) {
 	dir := t.TempDir()
 	nonEmptyDir := filepath.Join(dir, "notempty")
-	os.MkdirAll(nonEmptyDir, 0755)
-	os.WriteFile(filepath.Join(nonEmptyDir, "file.txt"), []byte("data"), 0644)
+	if err := os.MkdirAll(nonEmptyDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(nonEmptyDir, "file.txt"), []byte("data"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	removeIfEmptyDir(nonEmptyDir)
 
@@ -809,7 +929,9 @@ func TestCopyFileContent(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src.txt")
 	dst := filepath.Join(dir, "dst.txt")
-	os.WriteFile(src, []byte("hello world"), 0644)
+	if err := os.WriteFile(src, []byte("hello world"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if err := copyFileContent(src, dst); err != nil {
 		t.Fatalf("copyFileContent failed: %v", err)
@@ -828,7 +950,9 @@ func TestCopyFileContent_PreservesPermissions(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src.sh")
 	dst := filepath.Join(dir, "dst.sh")
-	os.WriteFile(src, []byte("#!/bin/bash"), 0755)
+	if err := os.WriteFile(src, []byte("#!/bin/bash"), 0755); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if err := copyFileContent(src, dst); err != nil {
 		t.Fatalf("copyFileContent failed: %v", err)
@@ -857,9 +981,15 @@ func TestCopyDirRecursive(t *testing.T) {
 	dst := filepath.Join(dir, "dst")
 
 	// Create nested structure
-	os.MkdirAll(filepath.Join(src, "sub"), 0755)
-	os.WriteFile(filepath.Join(src, "file1.txt"), []byte("root file"), 0644)
-	os.WriteFile(filepath.Join(src, "sub", "file2.txt"), []byte("sub file"), 0644)
+	if err := os.MkdirAll(filepath.Join(src, "sub"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "file1.txt"), []byte("root file"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(src, "sub", "file2.txt"), []byte("sub file"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if err := copyDirRecursive(src, dst); err != nil {
 		t.Fatalf("copyDirRecursive failed: %v", err)
@@ -888,7 +1018,9 @@ func TestCopyDirRecursive_EmptyDir(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "dst")
-	os.MkdirAll(src, 0755)
+	if err := os.MkdirAll(src, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	if err := copyDirRecursive(src, dst); err != nil {
 		t.Fatalf("copyDirRecursive failed for empty dir: %v", err)
@@ -908,13 +1040,19 @@ func TestCreateSymlink_UpdatesExisting(t *testing.T) {
 	src1 := filepath.Join(dir, "src1")
 	src2 := filepath.Join(dir, "src2")
 	dst := filepath.Join(dir, "link")
-	os.WriteFile(src1, []byte("v1"), 0644)
-	os.WriteFile(src2, []byte("v2"), 0644)
+	if err := os.WriteFile(src1, []byte("v1"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(src2, []byte("v2"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 
 	// Create symlink to src1
-	os.Symlink(src1, dst)
+	if err := os.Symlink(src1, dst); err != nil {
+		t.Fatalf("Symlink failed: %v", err)
+	}
 
 	// createSymlink should update to src2
 	result := createSymlink(item, src2, dst, false)
@@ -932,8 +1070,12 @@ func TestCreateSymlink_SkipsIfCurrent(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "link")
-	os.WriteFile(src, []byte("data"), 0644)
-	os.Symlink(src, dst)
+	if err := os.WriteFile(src, []byte("data"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.Symlink(src, dst); err != nil {
+		t.Fatalf("Symlink failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 	result := createSymlink(item, src, dst, false)
@@ -946,8 +1088,12 @@ func TestCreateSymlink_SkipsRegularFileWithoutForce(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "existing")
-	os.WriteFile(src, []byte("data"), 0644)
-	os.WriteFile(dst, []byte("regular file"), 0644)
+	if err := os.WriteFile(src, []byte("data"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(dst, []byte("regular file"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 	result := createSymlink(item, src, dst, false)
@@ -960,8 +1106,12 @@ func TestCreateSymlink_OverwritesRegularFileWithForce(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "existing")
-	os.WriteFile(src, []byte("data"), 0644)
-	os.WriteFile(dst, []byte("regular file"), 0644)
+	if err := os.WriteFile(src, []byte("data"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(dst, []byte("regular file"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 	result := createSymlink(item, src, dst, true)
@@ -982,8 +1132,12 @@ func TestCopyFile_ExistingDifferentContentNoForce(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "dst")
-	os.WriteFile(src, []byte("source content"), 0644)
-	os.WriteFile(dst, []byte("different content"), 0644)
+	if err := os.WriteFile(src, []byte("source content"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(dst, []byte("different content"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 	result := copyFile(item, src, dst, false)
@@ -996,8 +1150,12 @@ func TestCopyFile_ExistingSameContent(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "dst")
-	os.WriteFile(src, []byte("same content"), 0644)
-	os.WriteFile(dst, []byte("same content"), 0644)
+	if err := os.WriteFile(src, []byte("same content"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(dst, []byte("same content"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 	result := copyFile(item, src, dst, false)
@@ -1013,8 +1171,12 @@ func TestCopyFile_ExistingDifferentContentWithForce(t *testing.T) {
 	dir := t.TempDir()
 	src := filepath.Join(dir, "src")
 	dst := filepath.Join(dir, "dst")
-	os.WriteFile(src, []byte("new content"), 0644)
-	os.WriteFile(dst, []byte("old content"), 0644)
+	if err := os.WriteFile(src, []byte("new content"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(dst, []byte("old content"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	item := config.Item{TargetPath: "test"}
 	result := copyFile(item, src, dst, true)
@@ -1031,8 +1193,12 @@ func TestCopyFile_ExistingDifferentContentWithForce(t *testing.T) {
 func TestFindEnvInParents_FindsInParent(t *testing.T) {
 	root := t.TempDir()
 	child := filepath.Join(root, "child")
-	os.MkdirAll(child, 0755)
-	os.WriteFile(filepath.Join(root, ".env"), []byte("SECRET=1"), 0644)
+	if err := os.MkdirAll(child, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte("SECRET=1"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	result := findEnvInParents(child)
 	if len(result.Found) == 0 {
@@ -1047,10 +1213,14 @@ func TestFindEnvInParents_StopsAtGitRepo(t *testing.T) {
 	root := t.TempDir()
 	parentRepo := filepath.Join(root, "parent")
 	child := filepath.Join(parentRepo, "child")
-	os.MkdirAll(child, 0755)
+	if err := os.MkdirAll(child, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	// Make parent a git repo but don't place .env there
-	exec.Command("git", "init", parentRepo).Run()
+	if err := exec.Command("git", "init", parentRepo).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
 	result := findEnvInParents(child)
 	if len(result.Found) != 0 {
@@ -1064,9 +1234,15 @@ func TestFindEnvInParents_StopsAtGitRepo(t *testing.T) {
 func TestFindEnvInParents_FindsBothFiles(t *testing.T) {
 	root := t.TempDir()
 	child := filepath.Join(root, "child")
-	os.MkdirAll(child, 0755)
-	os.WriteFile(filepath.Join(root, ".env"), []byte("SECRET=1"), 0644)
-	os.WriteFile(filepath.Join(root, ".envrc"), []byte("export A=1"), 0644)
+	if err := os.MkdirAll(child, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".env"), []byte("SECRET=1"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(root, ".envrc"), []byte("export A=1"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	result := findEnvInParents(child)
 	if len(result.Found) != 2 {
@@ -1077,7 +1253,9 @@ func TestFindEnvInParents_FindsBothFiles(t *testing.T) {
 func TestStatusCopyMode(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeCopy})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeCopy}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
 	statuses, err := Status(cfg, targetDir)
 	if err != nil {
 		t.Fatalf("Status failed: %v", err)
@@ -1099,7 +1277,9 @@ func TestStatusCopyMode(t *testing.T) {
 func TestEjectAfterCopyInject(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeCopy})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeCopy}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
 	results, err := Eject(cfg, targetDir)
 	if err != nil {
 		t.Fatalf("Eject after copy inject failed: %v", err)
@@ -1121,9 +1301,15 @@ func TestInjectSourceNotFound(t *testing.T) {
 	rootDir := t.TempDir()
 	sourceDir := filepath.Join(rootDir, "source")
 	targetDir := filepath.Join(rootDir, "target")
-	os.MkdirAll(sourceDir, 0755)
-	os.MkdirAll(targetDir, 0755)
-	exec.Command("git", "init", targetDir).Run()
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := exec.Command("git", "init", targetDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
 	// Config references a source file that doesn't exist
 	cfg := &config.Config{
@@ -1149,12 +1335,20 @@ func TestInjectEmptySourceDir(t *testing.T) {
 	rootDir := t.TempDir()
 	sourceDir := filepath.Join(rootDir, "source")
 	targetDir := filepath.Join(rootDir, "target")
-	os.MkdirAll(sourceDir, 0755)
-	os.MkdirAll(targetDir, 0755)
-	exec.Command("git", "init", targetDir).Run()
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := exec.Command("git", "init", targetDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
 	// Directory item with empty source
-	os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	cfg := &config.Config{
 		Version:   1,
@@ -1200,13 +1394,25 @@ func TestEjectDoesNotDeleteUserOwnedFileAtManagedPath(t *testing.T) {
 	rootDir := t.TempDir()
 	sourceDir := filepath.Join(rootDir, "source")
 	targetDir := filepath.Join(rootDir, "target")
-	os.MkdirAll(sourceDir, 0755)
-	os.MkdirAll(targetDir, 0755)
-	exec.Command("git", "init", targetDir).Run()
+	if err := os.MkdirAll(sourceDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.MkdirAll(targetDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := exec.Command("git", "init", targetDir).Run(); err != nil {
+		t.Fatalf("git init failed: %v", err)
+	}
 
-	os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755)
-	os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644)
-	os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644)
+	if err := os.MkdirAll(filepath.Join(sourceDir, "skills"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "test.md"), []byte("skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(sourceDir, "hooks.json"), []byte(`{"hooks":[]}`), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Only enable skills (not .env/.envrc) to inject
 	cfg := &config.Config{
@@ -1225,7 +1431,9 @@ func TestEjectDoesNotDeleteUserOwnedFileAtManagedPath(t *testing.T) {
 	}
 
 	// Now the user manually creates a .envrc in their repo
-	os.WriteFile(filepath.Join(targetDir, ".envrc"), []byte("my own envrc"), 0644)
+	if err := os.WriteFile(filepath.Join(targetDir, ".envrc"), []byte("my own envrc"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Switch to a config that includes .envrc as a managed path
 	cfgWithEnv := &config.Config{
@@ -1283,7 +1491,9 @@ func TestEjectDoesNotDeleteUserFilesInManagedDirectory(t *testing.T) {
 
 	// User manually adds their own skill file
 	userSkill := filepath.Join(targetDir, ".claude", "skills", "my-custom-skill.md")
-	os.WriteFile(userSkill, []byte("user skill"), 0644)
+	if err := os.WriteFile(userSkill, []byte("user skill"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	// Eject
 	_, err = Eject(cfg, targetDir)
@@ -1314,7 +1524,9 @@ func TestEjectCleansUpRenamedSourceEntry(t *testing.T) {
 	sourceDir, targetDir, _ := setupTestEnv(t)
 
 	// Add an extra skill to source
-	os.WriteFile(filepath.Join(sourceDir, "skills", "old-skill.md"), []byte("old"), 0644)
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "old-skill.md"), []byte("old"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	cfg := &config.Config{
 		Version:   1,
@@ -1337,10 +1549,12 @@ func TestEjectCleansUpRenamedSourceEntry(t *testing.T) {
 	}
 
 	// Rename the source entry (simulating source evolution)
-	os.Rename(
+	if err := os.Rename(
 		filepath.Join(sourceDir, "skills", "old-skill.md"),
 		filepath.Join(sourceDir, "skills", "new-skill.md"),
-	)
+	); err != nil {
+		t.Fatalf("Rename failed: %v", err)
+	}
 
 	// Eject — old-skill.md must still be cleaned up even though source no longer has it
 	results, err := Eject(cfg, targetDir)
@@ -1369,7 +1583,9 @@ func TestEjectCleansUpDeletedSourceEntry(t *testing.T) {
 	// eject must still clean up the injected file.
 	sourceDir, targetDir, _ := setupTestEnv(t)
 
-	os.WriteFile(filepath.Join(sourceDir, "skills", "ephemeral.md"), []byte("temp"), 0644)
+	if err := os.WriteFile(filepath.Join(sourceDir, "skills", "ephemeral.md"), []byte("temp"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	cfg := &config.Config{
 		Version:   1,
@@ -1483,8 +1699,12 @@ func TestManifestSavedOnInject(t *testing.T) {
 func TestManifestClearedOnEject(t *testing.T) {
 	_, targetDir, cfg := setupTestEnv(t)
 
-	Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
-	Eject(cfg, targetDir)
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
+	if _, err := Eject(cfg, targetDir); err != nil {
+		t.Fatalf("Eject failed: %v", err)
+	}
 
 	gitDir, _ := gitutil.FindGitDir(targetDir)
 	manifest := LoadManifest(gitDir)
@@ -1588,7 +1808,9 @@ func TestStatus(t *testing.T) {
 	}
 
 	// After inject
-	Inject(cfg, targetDir, Options{Mode: config.ModeSymlink})
+	if _, err := Inject(cfg, targetDir, Options{Mode: config.ModeSymlink}); err != nil {
+		t.Fatalf("Inject failed: %v", err)
+	}
 	statuses, err = Status(cfg, targetDir)
 	if err != nil {
 		t.Fatalf("Status after inject failed: %v", err)

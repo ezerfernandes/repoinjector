@@ -48,10 +48,10 @@ type codexFunctionOut struct {
 }
 
 type codexTokenCount struct {
-	InputTokens    int64
-	OutputTokens   int64
-	CachedTokens   int64
-	ReasonTokens   int64
+	InputTokens  int64
+	OutputTokens int64
+	CachedTokens int64
+	ReasonTokens int64
 }
 
 // parseCodexLine normalises a single JSONL line from either old or new Codex format.

@@ -10,7 +10,9 @@ import (
 func setupGitDir(t *testing.T) string {
 	t.Helper()
 	dir := t.TempDir()
-	os.MkdirAll(filepath.Join(dir, "info"), 0755)
+	if err := os.MkdirAll(filepath.Join(dir, "info"), 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 	return dir
 }
 
@@ -46,8 +48,12 @@ func TestUpdateExcludeIdempotent(t *testing.T) {
 	gitDir := setupGitDir(t)
 	paths := []string{".envrc"}
 
-	UpdateExclude(gitDir, paths)
-	UpdateExclude(gitDir, paths)
+	if err := UpdateExclude(gitDir, paths); err != nil {
+		t.Fatalf("first UpdateExclude failed: %v", err)
+	}
+	if err := UpdateExclude(gitDir, paths); err != nil {
+		t.Fatalf("second UpdateExclude failed: %v", err)
+	}
 
 	content, _ := os.ReadFile(filepath.Join(gitDir, "info", "exclude"))
 	count := strings.Count(string(content), excludeMarkerStart)
@@ -60,9 +66,13 @@ func TestUpdateExcludePreservesExisting(t *testing.T) {
 	gitDir := setupGitDir(t)
 
 	existing := "# existing patterns\n*.log\n"
-	os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte(existing), 0644)
+	if err := os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte(existing), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
-	UpdateExclude(gitDir, []string{".env"})
+	if err := UpdateExclude(gitDir, []string{".env"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	content, _ := os.ReadFile(filepath.Join(gitDir, "info", "exclude"))
 	s := string(content)
@@ -78,10 +88,16 @@ func TestCleanExclude(t *testing.T) {
 	gitDir := setupGitDir(t)
 
 	existing := "# existing\n*.log\n"
-	os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte(existing), 0644)
+	if err := os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte(existing), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
-	UpdateExclude(gitDir, []string{".env"})
-	CleanExclude(gitDir)
+	if err := UpdateExclude(gitDir, []string{".env"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
+	if err := CleanExclude(gitDir); err != nil {
+		t.Fatalf("CleanExclude failed: %v", err)
+	}
 
 	content, _ := os.ReadFile(filepath.Join(gitDir, "info", "exclude"))
 	s := string(content)
@@ -95,7 +111,9 @@ func TestCleanExclude(t *testing.T) {
 
 func TestGetExcludedPaths(t *testing.T) {
 	gitDir := setupGitDir(t)
-	UpdateExclude(gitDir, []string{".envrc", ".env"})
+	if err := UpdateExclude(gitDir, []string{".envrc", ".env"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	paths := GetExcludedPaths(gitDir)
 	if len(paths) != 2 {
@@ -110,7 +128,9 @@ func TestHasManagedBlock(t *testing.T) {
 		t.Error("should not have managed block initially")
 	}
 
-	UpdateExclude(gitDir, []string{".env"})
+	if err := UpdateExclude(gitDir, []string{".env"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	if !HasManagedBlock(gitDir) {
 		t.Error("should have managed block after update")
@@ -127,7 +147,9 @@ func TestHasManagedBlock_NoFile(t *testing.T) {
 
 func TestHasManagedBlock_FileWithoutBlock(t *testing.T) {
 	gitDir := setupGitDir(t)
-	os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte("# just comments\n*.log\n"), 0644)
+	if err := os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte("# just comments\n*.log\n"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	if HasManagedBlock(gitDir) {
 		t.Error("should return false when file exists but has no managed block")
@@ -136,13 +158,17 @@ func TestHasManagedBlock_FileWithoutBlock(t *testing.T) {
 
 func TestHasManagedBlock_AfterClean(t *testing.T) {
 	gitDir := setupGitDir(t)
-	UpdateExclude(gitDir, []string{".env"})
+	if err := UpdateExclude(gitDir, []string{".env"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	if !HasManagedBlock(gitDir) {
 		t.Fatal("expected managed block after update")
 	}
 
-	CleanExclude(gitDir)
+	if err := CleanExclude(gitDir); err != nil {
+		t.Fatalf("CleanExclude failed: %v", err)
+	}
 
 	if HasManagedBlock(gitDir) {
 		t.Error("should not have managed block after clean")
@@ -222,10 +248,14 @@ func TestUpdateExclude_UpdatesExistingBlock(t *testing.T) {
 	gitDir := setupGitDir(t)
 
 	// First update with one set of paths
-	UpdateExclude(gitDir, []string{".env"})
+	if err := UpdateExclude(gitDir, []string{".env"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	// Second update with different paths
-	UpdateExclude(gitDir, []string{".envrc", ".claude/skills"})
+	if err := UpdateExclude(gitDir, []string{".envrc", ".claude/skills"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	content, _ := os.ReadFile(filepath.Join(gitDir, "info", "exclude"))
 	s := string(content)
@@ -247,7 +277,9 @@ func TestUpdateExclude_UpdatesExistingBlock(t *testing.T) {
 
 func TestGetExcludedPaths_MultiplePaths(t *testing.T) {
 	gitDir := setupGitDir(t)
-	UpdateExclude(gitDir, []string{".env", ".envrc", ".claude/skills"})
+	if err := UpdateExclude(gitDir, []string{".env", ".envrc", ".claude/skills"}); err != nil {
+		t.Fatalf("UpdateExclude failed: %v", err)
+	}
 
 	paths := GetExcludedPaths(gitDir)
 	if len(paths) != 3 {
@@ -258,7 +290,9 @@ func TestGetExcludedPaths_MultiplePaths(t *testing.T) {
 func TestGetExcludedPaths_EmptyBlock(t *testing.T) {
 	gitDir := setupGitDir(t)
 	content := excludeMarkerStart + "\n" + excludeMarkerEnd + "\n"
-	os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte(content), 0644)
+	if err := os.WriteFile(filepath.Join(gitDir, "info", "exclude"), []byte(content), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	paths := GetExcludedPaths(gitDir)
 	if len(paths) != 0 {

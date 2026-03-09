@@ -312,8 +312,12 @@ func TestLoad_InvalidYAML(t *testing.T) {
 	tmpDir := t.TempDir()
 	gitDir := filepath.Join(tmpDir, ".git")
 	configDir := filepath.Join(gitDir, "repomni")
-	os.MkdirAll(configDir, 0755)
-	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("{{invalid: yaml:::"), 0644)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("{{invalid: yaml:::"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	_, err := Load(gitDir)
 	if err == nil {
@@ -390,7 +394,9 @@ func TestToSelectedEntries_DisabledSkipped(t *testing.T) {
 func TestSaveAndLoad_EmptyItems(t *testing.T) {
 	tmpDir := t.TempDir()
 	gitDir := filepath.Join(tmpDir, ".git")
-	os.MkdirAll(gitDir, 0755)
+	if err := os.MkdirAll(gitDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
 
 	original := &RepoConfig{
 		Version: 1,

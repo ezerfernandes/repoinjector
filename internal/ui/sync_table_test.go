@@ -122,7 +122,9 @@ func TestPrintSyncJSON(t *testing.T) {
 	summary := syncer.SyncSummary{Total: 1, Pulled: 1}
 
 	output := captureStdout(t, func() {
-		PrintSyncJSON(results, summary)
+		if err := PrintSyncJSON(results, summary); err != nil {
+			t.Fatalf("PrintSyncJSON failed: %v", err)
+		}
 	})
 
 	// Verify valid JSON
@@ -149,7 +151,9 @@ func TestPrintGitStatusJSON(t *testing.T) {
 	}
 
 	output := captureStdout(t, func() {
-		PrintGitStatusJSON(statuses)
+		if err := PrintGitStatusJSON(statuses); err != nil {
+			t.Fatalf("PrintGitStatusJSON failed: %v", err)
+		}
 	})
 
 	// Verify valid JSON array
@@ -353,7 +357,9 @@ func TestPrintSyncJSON_Empty(t *testing.T) {
 	summary := syncer.SyncSummary{Total: 0}
 
 	output := captureStdout(t, func() {
-		PrintSyncJSON(nil, summary)
+		if err := PrintSyncJSON(nil, summary); err != nil {
+			t.Fatalf("PrintSyncJSON failed: %v", err)
+		}
 	})
 
 	var parsed map[string]json.RawMessage
@@ -384,7 +390,9 @@ func TestPrintSyncJSON_FieldValues(t *testing.T) {
 	summary := syncer.SyncSummary{Total: 1, Pulled: 1}
 
 	output := captureStdout(t, func() {
-		PrintSyncJSON(results, summary)
+		if err := PrintSyncJSON(results, summary); err != nil {
+			t.Fatalf("PrintSyncJSON failed: %v", err)
+		}
 	})
 
 	var parsed struct {
@@ -435,7 +443,9 @@ func TestPrintGitStatusJSON_FieldValues(t *testing.T) {
 	}
 
 	output := captureStdout(t, func() {
-		PrintGitStatusJSON(statuses)
+		if err := PrintGitStatusJSON(statuses); err != nil {
+			t.Fatalf("PrintGitStatusJSON failed: %v", err)
+		}
 	})
 
 	var parsed []struct {
@@ -468,7 +478,9 @@ func TestPrintGitStatusJSON_FieldValues(t *testing.T) {
 
 func TestPrintGitStatusJSON_Empty(t *testing.T) {
 	output := captureStdout(t, func() {
-		PrintGitStatusJSON(nil)
+		if err := PrintGitStatusJSON(nil); err != nil {
+			t.Fatalf("PrintGitStatusJSON failed: %v", err)
+		}
 	})
 
 	if !strings.Contains(output, "null") {
@@ -542,7 +554,9 @@ func TestPrintGitStatusJSON_Multiple(t *testing.T) {
 	}
 
 	output := captureStdout(t, func() {
-		PrintGitStatusJSON(statuses)
+		if err := PrintGitStatusJSON(statuses); err != nil {
+			t.Fatalf("PrintGitStatusJSON failed: %v", err)
+		}
 	})
 
 	var parsed []map[string]any
