@@ -102,8 +102,12 @@ func TestLoad_InvalidYAML(t *testing.T) {
 
 	// Create the config directory and write invalid YAML
 	configDir := filepath.Join(tmpDir, ".config", "repomni")
-	os.MkdirAll(configDir, 0755)
-	os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("{{invalid yaml:::"), 0644)
+	if err := os.MkdirAll(configDir, 0755); err != nil {
+		t.Fatalf("MkdirAll failed: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(configDir, "config.yaml"), []byte("{{invalid yaml:::"), 0644); err != nil {
+		t.Fatalf("WriteFile failed: %v", err)
+	}
 
 	_, err := Load()
 	if err == nil {

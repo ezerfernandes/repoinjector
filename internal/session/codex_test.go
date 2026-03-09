@@ -374,8 +374,8 @@ func TestPathContains(t *testing.T) {
 		{"/work/foo", "/work/fo", false},
 		{"/work/foo", "/other/path", false},
 		{"/", "/anything", true},
-		{"/work/foo/", "/work/foo/bar", true},  // trailing slash on parent
-		{"/work/foo", "/work/foo/", true},       // trailing slash on child
+		{"/work/foo/", "/work/foo/bar", true}, // trailing slash on parent
+		{"/work/foo", "/work/foo/", true},     // trailing slash on child
 	}
 	for _, tt := range tests {
 		got := PathContains(tt.parent, tt.child)
