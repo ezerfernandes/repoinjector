@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,6 +12,20 @@ import (
 	"github.com/ezerfernandes/repomni/internal/gitutil"
 	"github.com/spf13/cobra"
 )
+
+// commandResult holds the output and execution status of a command.
+type commandResult struct {
+	Output   string
+	ExitCode int
+	Err      error // non-nil when the command failed to start (e.g., missing executable)
+}
+
+// diffOutcome holds the result of comparing two command executions.
+type diffOutcome struct {
+	Stdout   string // text to print to stdout (includes trailing newlines where appropriate)
+	Stderr   string // text to print to stderr (includes trailing newlines where appropriate)
+	ExitCode int    // 0 = identical, 1 = different or error
+}
 
 var (
 	execDiffNoSync   bool
@@ -77,28 +92,21 @@ func runExecDiff(cmd *cobra.Command, args []string) error {
 
 	// Run command in both repos.
 	fmt.Fprintf(os.Stderr, "Running command in main repo (%s)...\n", filepath.Base(mainDir))
-	mainOut := captureCommand(mainDir, userCmd[0], userCmd[1:]...)
+	mainRes := captureCommand(mainDir, userCmd[0], userCmd[1:]...)
 
 	fmt.Fprintf(os.Stderr, "Running command in branch repo (%s)...\n", filepath.Base(branchDir))
-	branchOut := captureCommand(branchDir, userCmd[0], userCmd[1:]...)
+	branchRes := captureCommand(branchDir, userCmd[0], userCmd[1:]...)
 
-	// Display results.
-	if execDiffNameOnly {
-		fmt.Println(diffutil.SummaryLine(mainOut, branchOut))
-		if mainOut != branchOut {
-			os.Exit(1)
-		}
-		return nil
+	outcome := compareResults(mainRes, branchRes, execDiffNameOnly)
+	if outcome.Stderr != "" {
+		fmt.Fprint(os.Stderr, outcome.Stderr)
 	}
-
-	diff := diffutil.UnifiedDiff("main", "branch", mainOut, branchOut)
-	if diff == "" {
-		fmt.Println("Outputs are identical")
-		return nil
+	if outcome.Stdout != "" {
+		fmt.Print(outcome.Stdout)
 	}
-
-	fmt.Print(diffutil.ColorDiff(diff))
-	os.Exit(1)
+	if outcome.ExitCode != 0 {
+		os.Exit(outcome.ExitCode)
+	}
 	return nil
 }
 
@@ -144,11 +152,67 @@ func syncMainRepo(mainDir string) {
 	}
 }
 
-// captureCommand runs a command in dir and returns its combined stdout+stderr output.
-// The command's exit code is ignored since tools like linters return non-zero on findings.
-func captureCommand(dir string, name string, args ...string) string {
+// compareResults decides the outcome of comparing two command executions.
+func compareResults(mainRes, branchRes commandResult, nameOnly bool) diffOutcome {
+	// If the command failed to start in either repo, report the errors.
+	if mainRes.Err != nil || branchRes.Err != nil {
+		var stderr string
+		if mainRes.Err != nil {
+			stderr += fmt.Sprintf("Error in main repo: %v\n", mainRes.Err)
+		}
+		if branchRes.Err != nil {
+			stderr += fmt.Sprintf("Error in branch repo: %v\n", branchRes.Err)
+		}
+		return diffOutcome{Stderr: stderr, ExitCode: 1}
+	}
+
+	if nameOnly {
+		if mainRes.Output == branchRes.Output && mainRes.ExitCode != branchRes.ExitCode {
+			return diffOutcome{
+				Stdout:   fmt.Sprintf("Outputs are identical but exit codes differ (main=%d, branch=%d)\n", mainRes.ExitCode, branchRes.ExitCode),
+				ExitCode: 1,
+			}
+		}
+		exitCode := 0
+		if mainRes.Output != branchRes.Output {
+			exitCode = 1
+		}
+		return diffOutcome{
+			Stdout:   diffutil.SummaryLine(mainRes.Output, branchRes.Output) + "\n",
+			ExitCode: exitCode,
+		}
+	}
+
+	diff := diffutil.UnifiedDiff("main", "branch", mainRes.Output, branchRes.Output)
+	if diff == "" && mainRes.ExitCode != branchRes.ExitCode {
+		return diffOutcome{
+			Stdout:   fmt.Sprintf("Outputs are identical but exit codes differ (main=%d, branch=%d)\n", mainRes.ExitCode, branchRes.ExitCode),
+			ExitCode: 1,
+		}
+	}
+	if diff == "" {
+		return diffOutcome{Stdout: "Outputs are identical\n", ExitCode: 0}
+	}
+
+	return diffOutcome{Stdout: diffutil.ColorDiff(diff), ExitCode: 1}
+}
+
+// captureCommand runs a command in dir and returns its combined output and execution status.
+// A non-zero exit code is preserved (common for linters) but distinguished from a failure
+// to start the process (e.g., missing executable).
+func captureCommand(dir string, name string, args ...string) commandResult {
 	c := exec.Command(name, args...)
 	c.Dir = dir
-	out, _ := c.CombinedOutput()
-	return string(out)
+	out, err := c.CombinedOutput()
+
+	res := commandResult{Output: string(out)}
+	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			res.ExitCode = exitErr.ExitCode()
+		} else {
+			res.Err = err
+		}
+	}
+	return res
 }

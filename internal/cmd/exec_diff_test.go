@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -42,89 +43,206 @@ func TestRunExecDiff_EmptyCommand(t *testing.T) {
 	}
 }
 
-func TestRunExecDiff_IdenticalOutput(t *testing.T) {
-	dir := t.TempDir()
-	dir, _ = filepath.EvalSymlinks(dir)
+// --- compareResults unit tests ---
 
-	// Create "main" repo.
-	mainDir := filepath.Join(dir, "main")
-	if err := os.Mkdir(mainDir, 0755); err != nil {
-		t.Fatal(err)
+func TestCompareResults_IdenticalOutput(t *testing.T) {
+	main := commandResult{Output: "hello\n", ExitCode: 0}
+	branch := commandResult{Output: "hello\n", ExitCode: 0}
+
+	outcome := compareResults(main, branch, false)
+	if outcome.ExitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", outcome.ExitCode)
 	}
-	initGitRepo(t, mainDir)
-	if err := os.WriteFile(filepath.Join(mainDir, "file.txt"), []byte("hello\n"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	// Create "branch" repo.
-	branchDir := filepath.Join(dir, "branch")
-	if err := os.Mkdir(branchDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	initGitRepo(t, branchDir)
-	if err := os.WriteFile(filepath.Join(branchDir, "file.txt"), []byte("hello\n"), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	origDir, _ := os.Getwd()
-	defer func() { _ = os.Chdir(origDir) }()
-	if err := os.Chdir(branchDir); err != nil {
-		t.Fatal(err)
-	}
-
-	// Set flags directly.
-	execDiffNoSync = true
-	execDiffNameOnly = true
-	execDiffMainDir = mainDir
-	defer func() {
-		execDiffNoSync = false
-		execDiffNameOnly = false
-		execDiffMainDir = ""
-	}()
-
-	// We can't easily test the full runExecDiff with ArgsLenAtDash,
-	// so test the core helpers instead.
-	mainOut := captureCommand(mainDir, "cat", "file.txt")
-	branchOut := captureCommand(branchDir, "cat", "file.txt")
-
-	if mainOut != branchOut {
-		t.Errorf("expected identical output, got main=%q branch=%q", mainOut, branchOut)
+	if !strings.Contains(outcome.Stdout, "Outputs are identical") {
+		t.Errorf("expected identical message, got %q", outcome.Stdout)
 	}
 }
 
-func TestRunExecDiff_DifferentOutput(t *testing.T) {
+func TestCompareResults_DifferentOutput(t *testing.T) {
+	main := commandResult{Output: "hello\n", ExitCode: 0}
+	branch := commandResult{Output: "world\n", ExitCode: 0}
+
+	outcome := compareResults(main, branch, false)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if outcome.Stdout == "" {
+		t.Error("expected diff output")
+	}
+}
+
+func TestCompareResults_MissingExecutable(t *testing.T) {
+	main := commandResult{Err: fmt.Errorf("exec: \"nope\": executable file not found in $PATH")}
+	branch := commandResult{Output: "hello\n", ExitCode: 0}
+
+	outcome := compareResults(main, branch, false)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stderr, "Error in main repo") {
+		t.Errorf("expected error message, got stderr=%q", outcome.Stderr)
+	}
+}
+
+func TestCompareResults_BothMissingExecutable(t *testing.T) {
+	main := commandResult{Err: fmt.Errorf("exec: not found")}
+	branch := commandResult{Err: fmt.Errorf("exec: not found")}
+
+	outcome := compareResults(main, branch, false)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stderr, "Error in main repo") {
+		t.Errorf("expected main error, got stderr=%q", outcome.Stderr)
+	}
+	if !strings.Contains(outcome.Stderr, "Error in branch repo") {
+		t.Errorf("expected branch error, got stderr=%q", outcome.Stderr)
+	}
+}
+
+func TestCompareResults_SameOutputDifferentExitCodes(t *testing.T) {
+	main := commandResult{Output: "", ExitCode: 0}
+	branch := commandResult{Output: "", ExitCode: 1}
+
+	outcome := compareResults(main, branch, false)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stdout, "exit codes differ") {
+		t.Errorf("expected exit code diff message, got %q", outcome.Stdout)
+	}
+}
+
+func TestCompareResults_NameOnly_Identical(t *testing.T) {
+	main := commandResult{Output: "hello\n", ExitCode: 0}
+	branch := commandResult{Output: "hello\n", ExitCode: 0}
+
+	outcome := compareResults(main, branch, true)
+	if outcome.ExitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stdout, "Outputs are identical") {
+		t.Errorf("expected identical message, got %q", outcome.Stdout)
+	}
+}
+
+func TestCompareResults_NameOnly_Different(t *testing.T) {
+	main := commandResult{Output: "hello\n", ExitCode: 0}
+	branch := commandResult{Output: "world\n", ExitCode: 0}
+
+	outcome := compareResults(main, branch, true)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stdout, "Outputs differ") {
+		t.Errorf("expected differ message, got %q", outcome.Stdout)
+	}
+}
+
+func TestCompareResults_NameOnly_SameOutputDifferentExitCodes(t *testing.T) {
+	main := commandResult{Output: "", ExitCode: 0}
+	branch := commandResult{Output: "", ExitCode: 1}
+
+	outcome := compareResults(main, branch, true)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stdout, "exit codes differ") {
+		t.Errorf("expected exit code diff message, got %q", outcome.Stdout)
+	}
+}
+
+func TestCompareResults_NameOnly_MissingExecutable(t *testing.T) {
+	main := commandResult{Err: fmt.Errorf("exec: not found")}
+	branch := commandResult{Err: fmt.Errorf("exec: not found")}
+
+	outcome := compareResults(main, branch, true)
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if outcome.Stderr == "" {
+		t.Error("expected error messages for missing executable")
+	}
+	if outcome.Stdout != "" {
+		t.Errorf("expected no stdout for error case, got %q", outcome.Stdout)
+	}
+}
+
+// --- End-to-end tests: captureCommand + compareResults ---
+
+func TestExecDiff_EndToEnd_IdenticalFiles(t *testing.T) {
 	dir := t.TempDir()
-	dir, _ = filepath.EvalSymlinks(dir)
 
 	mainDir := filepath.Join(dir, "main")
-	if err := os.Mkdir(mainDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	initGitRepo(t, mainDir)
-	if err := os.WriteFile(filepath.Join(mainDir, "file.txt"), []byte("hello\nworld\n"), 0644); err != nil {
-		t.Fatal(err)
-	}
+	os.Mkdir(mainDir, 0755)
+	os.WriteFile(filepath.Join(mainDir, "file.txt"), []byte("hello\n"), 0644)
 
 	branchDir := filepath.Join(dir, "branch")
-	if err := os.Mkdir(branchDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	initGitRepo(t, branchDir)
-	if err := os.WriteFile(filepath.Join(branchDir, "file.txt"), []byte("hello\nuniverse\n"), 0644); err != nil {
-		t.Fatal(err)
-	}
+	os.Mkdir(branchDir, 0755)
+	os.WriteFile(filepath.Join(branchDir, "file.txt"), []byte("hello\n"), 0644)
 
-	mainOut := captureCommand(mainDir, "cat", "file.txt")
-	branchOut := captureCommand(branchDir, "cat", "file.txt")
+	mainRes := captureCommand(mainDir, "cat", "file.txt")
+	branchRes := captureCommand(branchDir, "cat", "file.txt")
+	outcome := compareResults(mainRes, branchRes, true)
 
-	if mainOut == branchOut {
-		t.Error("expected different output")
+	if outcome.ExitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", outcome.ExitCode)
 	}
-	if mainOut != "hello\nworld\n" {
-		t.Errorf("unexpected main output: %q", mainOut)
+	if !strings.Contains(outcome.Stdout, "Outputs are identical") {
+		t.Errorf("expected identical message, got %q", outcome.Stdout)
 	}
-	if branchOut != "hello\nuniverse\n" {
-		t.Errorf("unexpected branch output: %q", branchOut)
+}
+
+func TestExecDiff_EndToEnd_DifferentFiles(t *testing.T) {
+	dir := t.TempDir()
+
+	mainDir := filepath.Join(dir, "main")
+	os.Mkdir(mainDir, 0755)
+	os.WriteFile(filepath.Join(mainDir, "file.txt"), []byte("hello\n"), 0644)
+
+	branchDir := filepath.Join(dir, "branch")
+	os.Mkdir(branchDir, 0755)
+	os.WriteFile(filepath.Join(branchDir, "file.txt"), []byte("world\n"), 0644)
+
+	mainRes := captureCommand(mainDir, "cat", "file.txt")
+	branchRes := captureCommand(branchDir, "cat", "file.txt")
+	outcome := compareResults(mainRes, branchRes, false)
+
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if outcome.Stdout == "" {
+		t.Error("expected diff output")
+	}
+}
+
+func TestExecDiff_EndToEnd_MissingExecutable(t *testing.T) {
+	dir := t.TempDir()
+
+	mainRes := captureCommand(dir, "definitely-not-a-real-command")
+	branchRes := captureCommand(dir, "definitely-not-a-real-command")
+	outcome := compareResults(mainRes, branchRes, true)
+
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1 for missing executable, got %d", outcome.ExitCode)
+	}
+	if outcome.Stderr == "" {
+		t.Error("expected error messages for missing executable")
+	}
+}
+
+func TestExecDiff_EndToEnd_SameOutputDifferentExitCodes(t *testing.T) {
+	dir := t.TempDir()
+
+	mainRes := captureCommand(dir, "sh", "-c", "exit 0")
+	branchRes := captureCommand(dir, "sh", "-c", "exit 1")
+	outcome := compareResults(mainRes, branchRes, true)
+
+	if outcome.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", outcome.ExitCode)
+	}
+	if !strings.Contains(outcome.Stdout, "exit codes differ") {
+		t.Errorf("expected exit code diff message, got %q", outcome.Stdout)
 	}
 }
 
@@ -166,17 +284,50 @@ func TestResolveMainDir_NotARepo(t *testing.T) {
 }
 
 func TestCaptureCommand(t *testing.T) {
-	out := captureCommand(".", "echo", "hello")
-	if strings.TrimSpace(out) != "hello" {
-		t.Errorf("got %q, want %q", strings.TrimSpace(out), "hello")
+	res := captureCommand(".", "echo", "hello")
+	if res.Err != nil {
+		t.Fatalf("unexpected error: %v", res.Err)
+	}
+	if res.ExitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", res.ExitCode)
+	}
+	if strings.TrimSpace(res.Output) != "hello" {
+		t.Errorf("got %q, want %q", strings.TrimSpace(res.Output), "hello")
 	}
 }
 
 func TestCaptureCommand_NonZeroExit(t *testing.T) {
-	// Command that exits non-zero should still return output.
-	out := captureCommand(".", "sh", "-c", "echo error output; exit 1")
-	if !strings.Contains(out, "error output") {
-		t.Errorf("expected output even on non-zero exit, got %q", out)
+	res := captureCommand(".", "sh", "-c", "echo error output; exit 1")
+	if res.Err != nil {
+		t.Fatalf("unexpected start error: %v", res.Err)
+	}
+	if res.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", res.ExitCode)
+	}
+	if !strings.Contains(res.Output, "error output") {
+		t.Errorf("expected output even on non-zero exit, got %q", res.Output)
+	}
+}
+
+func TestCaptureCommand_MissingExecutable(t *testing.T) {
+	res := captureCommand(".", "definitely-not-a-real-command")
+	if res.Err == nil {
+		t.Fatal("expected error for missing executable")
+	}
+}
+
+func TestCaptureCommand_DifferentExitCodes(t *testing.T) {
+	res0 := captureCommand(".", "sh", "-c", "exit 0")
+	res1 := captureCommand(".", "sh", "-c", "exit 1")
+
+	if res0.ExitCode != 0 {
+		t.Errorf("expected exit code 0, got %d", res0.ExitCode)
+	}
+	if res1.ExitCode != 1 {
+		t.Errorf("expected exit code 1, got %d", res1.ExitCode)
+	}
+	if res0.Output != res1.Output {
+		t.Errorf("expected identical output, got %q vs %q", res0.Output, res1.Output)
 	}
 }
 
