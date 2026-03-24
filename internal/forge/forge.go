@@ -30,6 +30,13 @@ func cliName(platform Platform) string {
 	return "glab"
 }
 
+// sanitizeStderr strips potential credentials from stderr output before
+// including it in error messages.
+func sanitizeStderr(s string) string {
+	re := regexp.MustCompile(`(https?://)([^:@]+):([^@]+)@`)
+	return re.ReplaceAllString(s, "${1}${2}:***@")
+}
+
 // RunForge executes a gh or glab command and returns trimmed stdout.
 func RunForge(platform Platform, args ...string) (string, error) {
 	name := cliName(platform)
@@ -38,7 +45,7 @@ func RunForge(platform Platform, args ...string) (string, error) {
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("%s %s: %s: %w", name, strings.Join(args, " "), strings.TrimSpace(stderr.String()), err)
+		return "", fmt.Errorf("%s %s: %s: %w", name, strings.Join(args, " "), sanitizeStderr(strings.TrimSpace(stderr.String())), err)
 	}
 	return strings.TrimSpace(stdout.String()), nil
 }
@@ -52,7 +59,7 @@ func RunForgeDir(dir string, platform Platform, args ...string) (string, error) 
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return "", fmt.Errorf("%s %s: %s: %w", name, strings.Join(args, " "), strings.TrimSpace(stderr.String()), err)
+		return "", fmt.Errorf("%s %s: %s: %w", name, strings.Join(args, " "), sanitizeStderr(strings.TrimSpace(stderr.String())), err)
 	}
 	return strings.TrimSpace(stdout.String()), nil
 }
