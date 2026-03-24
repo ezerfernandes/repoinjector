@@ -1,6 +1,8 @@
 package forge
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestExtractHost(t *testing.T) {
 	tests := []struct {
@@ -43,6 +45,24 @@ func TestParseMergeNumber(t *testing.T) {
 			got := ParseMergeNumber(tt.url)
 			if got != tt.want {
 				t.Errorf("ParseMergeNumber(%q) = %d, want %d", tt.url, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCliName(t *testing.T) {
+	tests := []struct {
+		platform Platform
+		want     string
+	}{
+		{PlatformGitHub, "gh"},
+		{PlatformGitLab, "glab"},
+	}
+	for _, tt := range tests {
+		t.Run(string(tt.platform), func(t *testing.T) {
+			got := cliName(tt.platform)
+			if got != tt.want {
+				t.Errorf("cliName(%q) = %q, want %q", tt.platform, got, tt.want)
 			}
 		})
 	}
